@@ -1,12 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Disable webpack cache to prevent chunk loading errors
-  webpack: (config, { isServer }) => {
-    // Disable filesystem cache which causes chunk load errors
-    config.cache = false;
-
-    return config;
+  // Enable Turbopack (default in Next.js 16, explicit config to silence warnings)
+  turbopack: {
+    // Set explicit root directory to silence workspace root warning
+    root: __dirname,
   },
 
   // Add headers for API routes to prevent caching of user-specific data

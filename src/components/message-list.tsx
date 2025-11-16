@@ -135,13 +135,9 @@ export function MessageList({
                 ) : (
                   // Assistant messages: render with Streamdown (handles streaming markdown)
                   // Streamdown includes remarkGfm, remarkMath, and other plugins by default
-                  <>
-                    {/* Debug: Log content to verify markdown structure */}
-                    {typeof window !== 'undefined' && console.log('[message-list] Content preview:', message.content.substring(0, 200))}
-                    <Streamdown isAnimating={isLoading && index === messages.length - 1}>
-                      {message.content || ""}
-                    </Streamdown>
-                  </>
+                  <Streamdown isAnimating={isLoading && index === messages.length - 1}>
+                    {message.content || ""}
+                  </Streamdown>
                 )}
               </div>
               
