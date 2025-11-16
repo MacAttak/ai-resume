@@ -1,13 +1,48 @@
-import { fileSearchTool, Agent, AgentInputItem, Runner, withTrace } from "@openai/agents";
+import { fileSearchTool, Agent } from "@openai/agents";
 
-// Tool definitions
-const fileSearch = fileSearchTool([
-  "vs_69179ff7c53c8191a1ac612610854ff7"
-]);
+// Vector Store Configuration
+export const VECTOR_STORE_ID = "vs_69179ff7c53c8191a1ac612610854ff7";
 
-const daniel = new Agent({
-  name: "Daniel",
-  instructions: `You are Daniel McCarthy, an experienced Data Platform Architect, AI Engineer, and Technical Leader from Sydney, Australia. You're responding to questions about your professional experience, skills, and career journey. You have over 15 years of experience building enterprise data platforms, leading technical teams, and delivering production ML/AI systems.
+// Workflow Configuration
+export const WORKFLOW_NAME = "AI Resume Assistant";
+
+// Agent Instructions
+export const DANIEL_INSTRUCTIONS = `You are Daniel McCarthy, an experienced Data Platform Architect, AI Engineer, and Technical Leader from Sydney, Australia. You're responding to questions about your professional experience, skills, and career journey. You have over 15 years of experience building enterprise data platforms, leading technical teams, and delivering production ML/AI systems.
+
+## Formatting Instructions
+
+**CRITICAL**: Always format your responses using proper Markdown syntax:
+
+1. **Paragraphs**: Separate paragraphs with a blank line. Never make entire paragraphs bold - only use **bold** for specific emphasis on key terms.
+
+2. **Headings**: Use ## for main sections and ### for subsections. Add a blank line before and after headings.
+
+3. **Lists**: Use proper list syntax:
+   - Bullet lists: Start with dash and space (- item)
+   - Numbered lists: Start with number, period, and space (1. item)
+   - Add a blank line before and after lists
+
+4. **Text formatting**:
+   - Use **bold** only for emphasis on specific words or short phrases (never entire paragraphs)
+   - Use *italics* for subtle emphasis
+   - Use \`code\` for technical terms, tools, or code references
+
+5. **Spacing**: Always include proper spacing between sentences (one space after periods).
+
+Example format:
+First paragraph here with normal text.
+
+Second paragraph with **specific emphasis** on key terms only.
+
+## Section Heading
+
+- List item one
+- List item two
+- List item three
+
+Another paragraph after the list.
+
+IMPORTANT: Never make entire paragraphs bold. Only use bold for specific emphasis within sentences.
 
 ## Your Core Identity
 
@@ -110,7 +145,7 @@ Your progression has been deliberate and cumulative:
 - **Leadership**: Building teams and establishing engineering standards
 - **Innovation**: Applying AI/ML at scale with proper platform foundations
 
-You're not someone who jumped on the AI bandwagon - you've built the foundations that make AI possible at enterprise scale. Your current AI work is enhanced by your deep understanding of data platforms, not separate from it.
+You're not someone who jumped on the AI bandwand - you've built the foundations that make AI possible at enterprise scale. Your current AI work is enhanced by your deep understanding of data platforms, not separate from it.
 
 Remember: You bring unique value through your combination of:
 - Deep technical knowledge across data and AI
@@ -118,18 +153,57 @@ Remember: You bring unique value through your combination of:
 - Experience operating platforms at enterprise scale
 - Track record of delivering measurable business outcomes
 
-When discussing your experience, emphasise that AI without proper data foundations fails. Your strength is understanding the entire stack - from data platform architecture through to advanced AI systems.`,
-  model: "gpt-5",
-  tools: [fileSearch],
-  modelSettings: {
-    reasoning: {
-      effort: "medium",
-      summary: "auto"
-    },
-    store: true
-  }
-});
+When discussing your experience, emphasise that AI without proper data foundations fails. Your strength is understanding the entire stack - from data platform architecture through to advanced AI systems.`;
 
+// Agent Factory
+export function createDanielAgent(): Agent {
+  const fileSearch = fileSearchTool([VECTOR_STORE_ID]);
+
+  // Use faster model for dev/test, will configure prod model later
+  const model = "gpt-5-nano-2025-08-07";
+
+  return new Agent({
+    name: "Daniel",
+    instructions: DANIEL_INSTRUCTIONS,
+    model,
+    tools: [fileSearch],
+    modelSettings: {
+      reasoning: {
+        effort: "low",
+        summary: "auto"
+      },
+      store: true
+    }
+  });
+}
+
+// Runner Configuration Factory
+export function createRunnerConfig(conversationId?: string) {
+  const config: any = {
+    workflowName: WORKFLOW_NAME,
+    traceMetadata: {
+      __trace_source__: "ai-resume-app",
+      model: "gpt-5-nano-2025-08-07",  // Add model to trace for easier debugging
+      environment: process.env.NODE_ENV || "development"
+    },
+    stream: true
+  };
+
+  // Add conversation groupId if provided (links traces in same conversation)
+  if (conversationId) {
+    config.groupId = `conversation_${conversationId}`;
+    config.traceMetadata.conversationId = conversationId; // Also add to metadata for filtering
+  }
+
+  // Add project ID if specified (for project-specific resources)
+  if (process.env.OPENAI_PROJECT_ID) {
+    config.projectId = process.env.OPENAI_PROJECT_ID;
+  }
+
+  return config;
+}
+
+// Type exports
 export type Message = {
   role: "user" | "assistant";
   content: string;
@@ -139,60 +213,5 @@ export type Message = {
 export type ConversationState = {
   userId: string;
   messages: Message[];
-  agentHistory: AgentInputItem[];
+  agentHistory: any[]; // AgentInputItem from @openai/agents
 };
-
-export async function runDanielAgent(
-  userMessage: string,
-  conversationHistory: AgentInputItem[] = []
-): Promise<{
-  response: string;
-  updatedHistory: AgentInputItem[];
-  reasoning?: string;
-}> {
-  return await withTrace("Daniel Interview Agent", async () => {
-    // Add user message to conversation
-    const newUserItem: AgentInputItem = {
-      role: "user",
-      content: [
-        {
-          type: "input_text",
-          text: userMessage
-        }
-      ]
-    };
-
-    const fullHistory = [...conversationHistory, newUserItem];
-
-    // Run agent
-    // Configure project ID if specified in environment
-    const runnerConfig: any = {
-      traceMetadata: {
-        __trace_source__: "ai-resume-app",
-        workflow_id: `conv_${Date.now()}`
-      }
-    };
-
-    // Add project ID if specified (for project-specific resources)
-    if (process.env.OPENAI_PROJECT_ID) {
-      runnerConfig.projectId = process.env.OPENAI_PROJECT_ID;
-    }
-
-    const runner = new Runner(runnerConfig);
-
-    const result = await runner.run(daniel, fullHistory);
-
-    // Update conversation history with new items
-    const updatedHistory = [
-      ...fullHistory,
-      ...result.newItems.map((item) => item.rawItem)
-    ];
-
-    return {
-      response: result.finalOutput ?? "",
-      updatedHistory,
-      reasoning: result.newItems.find(i => i.rawItem.role === "assistant")
-        ?.rawItem.content?.find((c: any) => c.type === "text")?.text
-    };
-  });
-}

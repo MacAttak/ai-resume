@@ -1,5 +1,5 @@
 import { kv } from "@vercel/kv";
-import { ConversationState, Message } from "./agent";
+import { ConversationState, Message } from "./agent-config";
 import { AgentInputItem } from "@openai/agents";
 import { CONVERSATION_TTL } from "./constants";
 
