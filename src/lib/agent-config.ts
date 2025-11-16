@@ -159,8 +159,13 @@ When discussing your experience, emphasise that AI without proper data foundatio
 export function createDanielAgent(): Agent {
   const fileSearch = fileSearchTool([VECTOR_STORE_ID]);
 
-  // Use faster model for dev/test, will configure prod model later
-  const model = "gpt-5-nano-2025-08-07";
+  // Environment-based model selection
+  // Production: Use gpt-5.1-2025-11-13 for production-grade responses
+  // Preview/Development: Use fast nano model for cost efficiency
+  const isProduction = process.env.VERCEL_ENV === 'production';
+  const model = isProduction
+    ? process.env.PRODUCTION_MODEL || "gpt-5.1-2025-11-13"  // Production model (can be overridden)
+    : "gpt-5-nano-2025-08-07";  // Dev/preview model
 
   return new Agent({
     name: "Daniel",
@@ -179,12 +184,18 @@ export function createDanielAgent(): Agent {
 
 // Runner Configuration Factory
 export function createRunnerConfig(conversationId?: string) {
+  // Determine model for trace metadata
+  const isProduction = process.env.VERCEL_ENV === 'production';
+  const model = isProduction
+    ? process.env.PRODUCTION_MODEL || "gpt-5.1-2025-11-13"
+    : "gpt-5-nano-2025-08-07";
+
   const config: any = {
     workflowName: WORKFLOW_NAME,
     traceMetadata: {
       __trace_source__: "ai-resume-app",
-      model: "gpt-5-nano-2025-08-07",  // Add model to trace for easier debugging
-      environment: process.env.NODE_ENV || "development"
+      model,  // Dynamic model based on environment
+      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "development"
     },
     stream: true
   };
