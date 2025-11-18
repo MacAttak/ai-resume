@@ -79,7 +79,13 @@ export async function* runDanielAgentStream(
                 ...event.data.newItems.map((item: any) => item.rawItem || item)
               ];
             }
-            break;
+            // Yield completion event immediately
+            yield {
+              type: "done",
+              content: accumulatedContent,
+              updatedHistory
+            };
+            return; // Exit the generator
           }
         }
       } else {
@@ -145,7 +151,7 @@ export async function* runDanielAgentStream(
 
     // Return final state
     yield {
-      type: "complete",
+      type: "done",
       content: accumulatedContent,
       updatedHistory
     };
