@@ -1,13 +1,13 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { kv } from "@vercel/kv";
-import { RATE_LIMITS, TEST_RATE_LIMITS, isProduction } from "./constants";
+import { RATE_LIMITS, TEST_RATE_LIMITS, shouldUseProductionLimits } from "./constants";
 
 // Use Vercel KV (which is Upstash Redis) for rate limiting
 const redis = kv;
 
 // Determine which limits and prefixes to use based on environment
-const limits = isProduction() ? RATE_LIMITS : TEST_RATE_LIMITS;
-const keyPrefix = isProduction() ? "ratelimit" : "ratelimit:test";
+const limits = shouldUseProductionLimits() ? RATE_LIMITS : TEST_RATE_LIMITS;
+const keyPrefix = shouldUseProductionLimits() ? "ratelimit" : "ratelimit:test";
 
 // Per-minute rate limit
 export const ratelimitPerMinute = new Ratelimit({
