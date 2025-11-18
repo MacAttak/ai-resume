@@ -14,7 +14,7 @@ Clerk Auth + Upstash Redis
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 16 with App Router
 - **UI**: Tailwind CSS + shadcn/ui components + Dark Mode
 - **Auth**: Clerk
 - **AI Agent**: OpenAI AgentSDK with File Search
@@ -27,7 +27,7 @@ Clerk Auth + Upstash Redis
 ### ✅ All Features Implemented
 
 1. **Project Setup** ✅
-   - Next.js 15 project with TypeScript
+   - Next.js 16 project with TypeScript and React 19
    - Tailwind CSS configuration
    - All dependencies installed
 
@@ -148,6 +148,15 @@ src/
 5. Test locally
 6. Deploy to Vercel
 
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
 ## License
 
-Private project
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+**Daniel McCarthy**
+- GitHub: [@MacAttak](https://github.com/MacAttak)
