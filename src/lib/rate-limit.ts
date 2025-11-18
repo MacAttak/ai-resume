@@ -1,24 +1,28 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { kv } from "@vercel/kv";
-import { RATE_LIMITS } from "./constants";
+import { RATE_LIMITS, TEST_RATE_LIMITS, isProduction } from "./constants";
 
 // Use Vercel KV (which is Upstash Redis) for rate limiting
 const redis = kv;
 
+// Determine which limits and prefixes to use based on environment
+const limits = isProduction() ? RATE_LIMITS : TEST_RATE_LIMITS;
+const keyPrefix = isProduction() ? "ratelimit" : "ratelimit:test";
+
 // Per-minute rate limit
 export const ratelimitPerMinute = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(RATE_LIMITS.PER_MINUTE, "1 m"),
+  limiter: Ratelimit.slidingWindow(limits.PER_MINUTE, "1 m"),
   analytics: true,
-  prefix: "ratelimit:minute"
+  prefix: `${keyPrefix}:minute`
 });
 
 // Per-day rate limit
 export const ratelimitPerDay = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(RATE_LIMITS.PER_DAY, "1 d"),
+  limiter: Ratelimit.slidingWindow(limits.PER_DAY, "1 d"),
   analytics: true,
-  prefix: "ratelimit:day"
+  prefix: `${keyPrefix}:day`
 });
 
 export async function checkRateLimit(userId: string): Promise<{
