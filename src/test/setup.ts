@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import { ReadableStream } from 'node:stream/web';
+import { TextEncoder, TextDecoder } from 'node:util';
+
+// Polyfill ReadableStream for tests
+global.ReadableStream = ReadableStream as any;
+global.TextEncoder = TextEncoder as any;
+global.TextDecoder = TextDecoder as any;
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({

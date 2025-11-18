@@ -79,7 +79,7 @@ export function ChatInterface() {
       if (!response.ok) {
         // Remove both user and placeholder messages on error
         setMessages((prev) => prev.slice(0, -2));
-        
+
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 429) {
           setError(`Rate limit exceeded. ${errorData.dayRemaining || 0} messages remaining today.`);
@@ -90,6 +90,7 @@ export function ChatInterface() {
         if (restoreInput !== undefined) {
           setInput(restoreInput);
         }
+        setIsLoading(false);
         return;
       }
 
@@ -138,6 +139,7 @@ export function ChatInterface() {
                 }
                 setIsLoading(false);
               } else if (data.type === "error") {
+                setIsLoading(false);
                 throw new Error(data.error || "Stream error");
               }
             } catch (parseError) {

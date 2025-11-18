@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
               // Stream complete - use sanitized content if available
               let finalContent = fullResponse;
 
-              if (event.type === "complete") {
+              if (event.type === "done" || event.type === "complete") {
                 if ((event as any).content) {
                   // Use the sanitized content from the complete event
                   finalContent = (event as any).content;
