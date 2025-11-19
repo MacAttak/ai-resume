@@ -9,6 +9,7 @@ jobs:
   quality:
     name: Code Quality & Tests
     runs-on: ubuntu-latest
+    environment: preview
 
     steps:
       - name: Checkout code
