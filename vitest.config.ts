@@ -20,10 +20,7 @@ export default defineConfig({
     // Inline ES module dependencies that are shipped as CommonJS
     server: {
       deps: {
-        inline: [
-          'rehype-harden',
-          'streamdown',
-        ],
+        inline: ['rehype-harden', 'streamdown'],
       },
     },
     coverage: {
@@ -46,4 +43,3 @@ export default defineConfig({
     },
   },
 });
-

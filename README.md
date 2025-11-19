@@ -14,7 +14,7 @@ Clerk Auth + Upstash Redis
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 16 with App Router
 - **UI**: Tailwind CSS + shadcn/ui components + Dark Mode
 - **Auth**: Clerk
 - **AI Agent**: OpenAI AgentSDK with File Search
@@ -27,7 +27,7 @@ Clerk Auth + Upstash Redis
 ### ✅ All Features Implemented
 
 1. **Project Setup** ✅
-   - Next.js 15 project with TypeScript
+   - Next.js 16 project with TypeScript and React 19
    - Tailwind CSS configuration
    - All dependencies installed
 
@@ -78,6 +78,7 @@ cp .env.example .env.local
 ```
 
 You'll need:
+
 - OpenAI API key
 - Clerk publishable and secret keys
 - Upstash Redis URL and token
@@ -93,15 +94,15 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `OPENAI_API_KEY` | OpenAI API key for AgentSDK | Yes |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | Yes |
-| `CLERK_SECRET_KEY` | Clerk secret key | Yes |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis URL | Yes |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis token | Yes |
-| `KV_REST_API_URL` | Vercel KV URL (auto-added) | Yes |
-| `KV_REST_API_TOKEN` | Vercel KV token (auto-added) | Yes |
+| Variable                            | Description                  | Required |
+| ----------------------------------- | ---------------------------- | -------- |
+| `OPENAI_API_KEY`                    | OpenAI API key for AgentSDK  | Yes      |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key        | Yes      |
+| `CLERK_SECRET_KEY`                  | Clerk secret key             | Yes      |
+| `UPSTASH_REDIS_REST_URL`            | Upstash Redis URL            | Yes      |
+| `UPSTASH_REDIS_REST_TOKEN`          | Upstash Redis token          | Yes      |
+| `KV_REST_API_URL`                   | Vercel KV URL (auto-added)   | Yes      |
+| `KV_REST_API_TOKEN`                 | Vercel KV token (auto-added) | Yes      |
 
 ## Features
 
@@ -148,6 +149,16 @@ src/
 5. Test locally
 6. Deploy to Vercel
 
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
 ## License
 
-Private project
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+**Daniel McCarthy**
+
+- GitHub: [@MacAttak](https://github.com/MacAttak)

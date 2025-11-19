@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getConversation, saveConversation, clearConversation, addMessage } from '../conversation';
+import {
+  getConversation,
+  saveConversation,
+  clearConversation,
+  addMessage,
+} from '../conversation';
 import { kv } from '@vercel/kv';
-import type { ConversationState, Message } from '../agent';
+import type { ConversationState, Message } from '../agent-config';
 import type { AgentInputItem } from '@openai/agents';
 
 vi.mock('@vercel/kv', () => ({
@@ -143,4 +148,3 @@ describe('conversation', () => {
     });
   });
 });
-

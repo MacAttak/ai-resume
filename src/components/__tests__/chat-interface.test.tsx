@@ -23,14 +23,22 @@ describe('ChatInterface', () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.queryByText('Loading conversation...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading conversation...')
+      ).not.toBeInTheDocument();
     });
 
     expect(screen.getByText('Start a conversation')).toBeInTheDocument();
     expect(screen.getByText(/Ask me about my experience/)).toBeInTheDocument();
-    expect(screen.getByText("What data platforms have you worked with?")).toBeInTheDocument();
-    expect(screen.getByText("Tell me about your AI engineering experience")).toBeInTheDocument();
-    expect(screen.getByText("What's your leadership philosophy?")).toBeInTheDocument();
+    expect(
+      screen.getByText('What data platforms have you worked with?')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Tell me about your AI engineering experience')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("What's your leadership philosophy?")
+    ).toBeInTheDocument();
   });
 
   it('displays usage information', async () => {
@@ -38,7 +46,9 @@ describe('ChatInterface', () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.queryByText('Loading conversation...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading conversation...')
+      ).not.toBeInTheDocument();
     });
 
     expect(screen.getByText(/100 \/ 100 messages today/)).toBeInTheDocument();
@@ -51,10 +61,18 @@ describe('ChatInterface', () => {
     const stream = new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
-        controller.enqueue(encoder.encode('data: {"type":"content","content":"Test response"}\n\n'));
-        controller.enqueue(encoder.encode('data: {"type":"done","usage":{"minuteRemaining":9,"dayRemaining":99}}\n\n'));
+        controller.enqueue(
+          encoder.encode(
+            'data: {"type":"content","content":"Test response"}\n\n'
+          )
+        );
+        controller.enqueue(
+          encoder.encode(
+            'data: {"type":"done","usage":{"minuteRemaining":9,"dayRemaining":99}}\n\n'
+          )
+        );
         controller.close();
-      }
+      },
     });
 
     (global.fetch as any).mockResolvedValueOnce({
@@ -87,7 +105,9 @@ describe('ChatInterface', () => {
 
     // Wait for initial load to complete
     await waitFor(() => {
-      expect(screen.queryByText('Loading conversation...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading conversation...')
+      ).not.toBeInTheDocument();
     });
 
     // Mock the error response for the chat request (after conversation load)
@@ -114,7 +134,9 @@ describe('ChatInterface', () => {
 
     // Wait for initial load to complete
     await waitFor(() => {
-      expect(screen.queryByText('Loading conversation...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading conversation...')
+      ).not.toBeInTheDocument();
     });
 
     // Mock the rate limit error response for the chat request
@@ -133,7 +155,9 @@ describe('ChatInterface', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Rate limit exceeded.*45 messages remaining today/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Rate limit exceeded.*45 messages remaining today/)
+      ).toBeInTheDocument();
     });
   });
 
@@ -144,17 +168,25 @@ describe('ChatInterface', () => {
 
     // Wait for initial load to complete
     await waitFor(() => {
-      expect(screen.queryByText('Loading conversation...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading conversation...')
+      ).not.toBeInTheDocument();
     });
 
     // Mock streaming response for message sending
     const stream = new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
-        controller.enqueue(encoder.encode('data: {"type":"content","content":"Response"}\n\n'));
-        controller.enqueue(encoder.encode('data: {"type":"done","usage":{"minuteRemaining":9,"dayRemaining":99}}\n\n'));
+        controller.enqueue(
+          encoder.encode('data: {"type":"content","content":"Response"}\n\n')
+        );
+        controller.enqueue(
+          encoder.encode(
+            'data: {"type":"done","usage":{"minuteRemaining":9,"dayRemaining":99}}\n\n'
+          )
+        );
         controller.close();
-      }
+      },
     });
 
     (global.fetch as any).mockResolvedValueOnce({
@@ -193,7 +225,9 @@ describe('ChatInterface', () => {
 
     // Wait for initial load to complete
     await waitFor(() => {
-      expect(screen.queryByText('Loading conversation...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Loading conversation...')
+      ).not.toBeInTheDocument();
     });
 
     let resolvePromise: (value: any) => void;
@@ -216,10 +250,16 @@ describe('ChatInterface', () => {
     const stream = new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
-        controller.enqueue(encoder.encode('data: {"type":"content","content":"Response"}\n\n'));
-        controller.enqueue(encoder.encode('data: {"type":"done","usage":{"minuteRemaining":9,"dayRemaining":99}}\n\n'));
+        controller.enqueue(
+          encoder.encode('data: {"type":"content","content":"Response"}\n\n')
+        );
+        controller.enqueue(
+          encoder.encode(
+            'data: {"type":"done","usage":{"minuteRemaining":9,"dayRemaining":99}}\n\n'
+          )
+        );
         controller.close();
-      }
+      },
     });
 
     resolvePromise!({
@@ -232,4 +272,3 @@ describe('ChatInterface', () => {
     });
   });
 });
-

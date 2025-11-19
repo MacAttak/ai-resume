@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+coverage/
+dist/
+*.lock
+package-lock.json
+.env*
+playwright-report/
+test-results/
+.turbo/

@@ -42,4 +42,3 @@ process.env.CLERK_SECRET_KEY = 'test-clerk-secret';
 process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-clerk-publishable';
 process.env.KV_REST_API_URL = 'https://test-redis.upstash.io';
 process.env.KV_REST_API_TOKEN = 'test-redis-token';
-

@@ -48,4 +48,3 @@ export const mockConversation = {
   messages: [],
   agentHistory: [],
 };
-
