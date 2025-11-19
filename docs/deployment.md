@@ -3,6 +3,7 @@
 This guide covers deploying the AI Resume application to Vercel using Git integration.
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Environment Configuration](#environment-configuration)
 - [Deployment Workflow](#deployment-workflow)
@@ -12,12 +13,14 @@ This guide covers deploying the AI Resume application to Vercel using Git integr
 ## Overview
 
 ### Deployment Strategy
+
 - **Vercel Git Integration**: Automatic deployments on Git push
 - **Preview Environment**: `develop` branch → `ai-resume-six-chi.vercel.app`
 - **Production Environment**: `main` branch → `chatwithdan.chat`
 - **No CI/CD Tools Required**: Vercel handles all builds and deployments
 
 ### Project Configuration
+
 - **Vercel Project ID**: `prj_VAFdhl6fQIcOWBGeBhP3ptovZUzm`
 - **Framework**: Next.js 15.0.3
 - **Build Command**: `npm run build` (automatically used by Vercel)
@@ -28,31 +31,34 @@ This guide covers deploying the AI Resume application to Vercel using Git integr
 ### Required Environment Variables
 
 All environment variables must be configured in the **Vercel Dashboard** under:
+
 ```
 Project Settings → Environment Variables
 ```
 
 #### 1. OpenAI Configuration
 
-| Variable | Production | Preview | Development | Description |
-|----------|-----------|---------|-------------|-------------|
-| `OPENAI_API_KEY` | ✓ | ✓ | ✓ | Your OpenAI API key from platform.openai.com |
-| `OPENAI_PROJECT_ID` | ✓ | ✓ | ✓ | Optional: OpenAI project ID for organization |
-| `PRODUCTION_MODEL` | ✓ | ✗ | ✗ | Optional: Override default `gpt-5.1-2025-11-13` model |
+| Variable            | Production | Preview | Development | Description                                           |
+| ------------------- | ---------- | ------- | ----------- | ----------------------------------------------------- |
+| `OPENAI_API_KEY`    | ✓          | ✓       | ✓           | Your OpenAI API key from platform.openai.com          |
+| `OPENAI_PROJECT_ID` | ✓          | ✓       | ✓           | Optional: OpenAI project ID for organization          |
+| `PRODUCTION_MODEL`  | ✓          | ✗       | ✗           | Optional: Override default `gpt-5.1-2025-11-13` model |
 
 **Notes:**
+
 - Can use the same `OPENAI_API_KEY` for all environments, or separate keys for cost tracking
 - `PRODUCTION_MODEL` defaults to `gpt-5.1-2025-11-13` if not set
 - Preview and development automatically use `gpt-5-nano-2025-08-07` for cost efficiency
 
 #### 2. Clerk Authentication
 
-| Variable | Production | Preview | Development | Description |
-|----------|-----------|---------|-------------|-------------|
+| Variable                            | Production      | Preview            | Development    | Description                         |
+| ----------------------------------- | --------------- | ------------------ | -------------- | ----------------------------------- |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | ✓ Prod Instance | ✓ Staging Instance | ✓ Dev Instance | Clerk publishable key (client-safe) |
-| `CLERK_SECRET_KEY` | ✓ Prod Instance | ✓ Staging Instance | ✓ Dev Instance | Clerk secret key (server-only) |
+| `CLERK_SECRET_KEY`                  | ✓ Prod Instance | ✓ Staging Instance | ✓ Dev Instance | Clerk secret key (server-only)      |
 
 **IMPORTANT:**
+
 - **Must use separate Clerk instances** for production and preview/development
 - Create a staging Clerk instance at [clerk.com/dashboard](https://clerk.com/dashboard)
 - Configure authorized domains:
@@ -61,30 +67,32 @@ Project Settings → Environment Variables
 
 #### 3. Upstash Redis (Rate Limiting & Storage)
 
-| Variable | Production | Preview | Development | Description |
-|----------|-----------|---------|-------------|-------------|
-| `UPSTASH_REDIS_REST_URL` | ✓ | ✓ | ✓ | Upstash Redis REST API URL |
-| `UPSTASH_REDIS_REST_TOKEN` | ✓ | ✓ | ✓ | Upstash Redis REST API token |
-| `KV_REST_API_URL` | ✓ | ✓ | ✓ | Same as `UPSTASH_REDIS_REST_URL` |
-| `KV_REST_API_TOKEN` | ✓ | ✓ | ✓ | Same as `UPSTASH_REDIS_REST_TOKEN` |
-| `KV_URL` | ✓ | ✓ | ✓ | Upstash Redis connection string |
+| Variable                   | Production | Preview | Development | Description                        |
+| -------------------------- | ---------- | ------- | ----------- | ---------------------------------- |
+| `UPSTASH_REDIS_REST_URL`   | ✓          | ✓       | ✓           | Upstash Redis REST API URL         |
+| `UPSTASH_REDIS_REST_TOKEN` | ✓          | ✓       | ✓           | Upstash Redis REST API token       |
+| `KV_REST_API_URL`          | ✓          | ✓       | ✓           | Same as `UPSTASH_REDIS_REST_URL`   |
+| `KV_REST_API_TOKEN`        | ✓          | ✓       | ✓           | Same as `UPSTASH_REDIS_REST_TOKEN` |
+| `KV_URL`                   | ✓          | ✓       | ✓           | Upstash Redis connection string    |
 
 **Recommendation:**
+
 - **Option 1 (Simple)**: Use same Redis instance for all environments
 - **Option 2 (Isolated)**: Create separate Redis databases for production vs preview
 - Get credentials from [console.upstash.com](https://console.upstash.com/)
 
 #### 4. E2E Testing (Preview/Development Only)
 
-| Variable | Production | Preview | Development | Description |
-|----------|-----------|---------|-------------|-------------|
-| `E2E_CLERK_TEST_EMAIL` | ✗ | ✓ | ✓ | Test user email with `+clerk_test` suffix |
+| Variable               | Production | Preview | Development | Description                               |
+| ---------------------- | ---------- | ------- | ----------- | ----------------------------------------- |
+| `E2E_CLERK_TEST_EMAIL` | ✗          | ✓       | ✓           | Test user email with `+clerk_test` suffix |
 
 **Example:** `test+clerk_test@chatwithdan.com`
 
 ### Setting Environment Variables in Vercel
 
 #### Step 1: Navigate to Environment Variables
+
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select your project
 3. Click **Settings** → **Environment Variables**
@@ -127,12 +135,12 @@ Value: pk_live_production_instance_key
 
 These are automatically available - **do not add manually**:
 
-| Variable | Description | Example Value |
-|----------|-------------|---------------|
-| `VERCEL_ENV` | Current environment | `production`, `preview`, or `development` |
-| `VERCEL_URL` | Deployment URL | `ai-resume-six-chi.vercel.app` |
-| `VERCEL_GIT_COMMIT_REF` | Git branch name | `main`, `develop`, `feature-branch` |
-| `NODE_ENV` | Node environment | `production` |
+| Variable                | Description         | Example Value                             |
+| ----------------------- | ------------------- | ----------------------------------------- |
+| `VERCEL_ENV`            | Current environment | `production`, `preview`, or `development` |
+| `VERCEL_URL`            | Deployment URL      | `ai-resume-six-chi.vercel.app`            |
+| `VERCEL_GIT_COMMIT_REF` | Git branch name     | `main`, `develop`, `feature-branch`       |
+| `NODE_ENV`              | Node environment    | `production`                              |
 
 ## Deployment Workflow
 
@@ -154,6 +162,7 @@ These are automatically available - **do not add manually**:
 ### Development Workflow
 
 #### Feature Development
+
 ```bash
 # 1. Create feature branch from develop
 git checkout develop
@@ -180,6 +189,7 @@ git push origin feature/new-feature
 ```
 
 #### Deploying to Preview (develop branch)
+
 ```bash
 # After PR is approved and merged to develop
 git checkout develop
@@ -190,6 +200,7 @@ git pull origin develop
 ```
 
 #### Deploying to Production (main branch)
+
 ```bash
 # 1. Create PR from develop to main
 # Review all changes carefully
@@ -209,11 +220,13 @@ git push origin main
 After each deployment, verify:
 
 #### Automated Checks (Vercel)
+
 - ✓ Build completes successfully
 - ✓ No build errors or warnings
 - ✓ Deployment is live
 
 #### Manual Verification
+
 - [ ] Homepage loads correctly
 - [ ] Authentication works (sign in/out)
 - [ ] Chat interface is responsive
@@ -223,6 +236,7 @@ After each deployment, verify:
 - [ ] Performance is acceptable (< 3s initial load)
 
 #### Production-Specific Checks
+
 - [ ] Custom domain resolves correctly (chatwithdan.chat)
 - [ ] SSL certificate is valid
 - [ ] OpenAI usage shows production model (gpt-5.1-2025-11-13)
@@ -258,11 +272,13 @@ The preview domain `ai-resume-six-chi.vercel.app` is automatically assigned by V
 ### Vercel Dashboard
 
 Access deployment logs and metrics:
+
 ```
 Vercel Dashboard → Your Project → Deployments
 ```
 
 **Key Metrics:**
+
 - Build logs
 - Function execution logs
 - Real-time errors
@@ -271,17 +287,20 @@ Vercel Dashboard → Your Project → Deployments
 ### OpenAI Platform
 
 Monitor AI usage and costs:
+
 ```
 https://platform.openai.com/usage
 ```
 
 **Filter by:**
+
 - Project ID: Use `OPENAI_PROJECT_ID` for organization
 - Trace metadata: `environment`, `model` (set in agent-config.ts)
 
 ### Upstash Redis
 
 Monitor rate limiting and storage:
+
 ```
 https://console.upstash.com/
 ```
@@ -291,7 +310,9 @@ https://console.upstash.com/
 ### Build Failures
 
 #### Issue: Module not found errors
+
 **Solution:**
+
 ```bash
 # Ensure dependencies are in dependencies, not devDependencies
 npm install <package> --save
@@ -301,7 +322,9 @@ cat package.json
 ```
 
 #### Issue: Type errors during build
+
 **Solution:**
+
 ```bash
 # Run type checking locally
 npm run build
@@ -313,21 +336,27 @@ npx tsc --noEmit
 ### Environment Variable Issues
 
 #### Issue: Variables not available in deployment
+
 **Symptoms:**
+
 - Application errors related to missing env vars
 - `process.env.VARIABLE_NAME` is undefined
 
 **Solution:**
+
 1. Verify variable is set in Vercel Dashboard
 2. Check environment targeting (Production/Preview/Development)
 3. **Redeploy** after adding variables (Vercel doesn't auto-redeploy)
    - Go to Deployments → Click "..." → Redeploy
 
 #### Issue: Client-side variables not working
+
 **Symptoms:**
+
 - Variables work on server but not in browser
 
 **Solution:**
+
 - Ensure client-accessible variables use `NEXT_PUBLIC_` prefix
 - Example: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - Never expose secrets with `NEXT_PUBLIC_` prefix!
@@ -335,23 +364,29 @@ npx tsc --noEmit
 ### API Route Timeouts
 
 #### Issue: Functions timeout after 10 seconds
+
 **Symptoms:**
+
 - Error: "Function execution timed out"
 - Affects long-running AI agent calls
 
 **Solution (Hobby Plan - 10s limit):**
+
 - Optimize AI agent calls
 - Use streaming responses (already implemented)
 - Consider caching common responses
 
 **Solution (Pro Plan - 60s limit):**
+
 - Upgrade to Vercel Pro plan
 - Timeout automatically increased to 60 seconds
 
 ### Deployment Not Triggering
 
 #### Issue: Push to branch doesn't trigger deployment
+
 **Solution:**
+
 1. Check GitHub integration status in Vercel Dashboard
 2. Verify branch is not ignored in Git settings
 3. Check Vercel deployment logs for errors
@@ -361,20 +396,26 @@ npx tsc --noEmit
 ### Performance Issues
 
 #### Issue: Slow cold starts
+
 **Symptoms:**
+
 - First request after idle period takes > 5s
 
 **Solution:**
+
 - Expected behavior on Vercel Hobby plan
 - Upgrade to Pro plan for reduced cold starts
 - Consider implementing warming strategy
 
 #### Issue: Large bundle size
+
 **Symptoms:**
+
 - Slow page loads
 - Large JavaScript bundles
 
 **Solution:**
+
 ```bash
 # Analyze bundle size
 npm run build
@@ -386,7 +427,9 @@ npm run build
 ### Clerk Authentication Issues
 
 #### Issue: Users can't sign in on preview deployment
+
 **Solution:**
+
 1. Verify preview deployment uses staging Clerk instance
 2. Check authorized domains in Clerk Dashboard include:
    - `*.vercel.app`
@@ -394,7 +437,9 @@ npm run build
 3. Ensure `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is correct for Preview environment
 
 #### Issue: Sign-in works locally but not on Vercel
+
 **Solution:**
+
 - Check environment variables in Vercel Dashboard
 - Verify both `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` are set
 - Ensure middleware is properly configured (src/middleware.ts)
@@ -402,7 +447,9 @@ npm run build
 ### Database/Redis Connection Issues
 
 #### Issue: Rate limiting not working
+
 **Solution:**
+
 1. Verify Upstash Redis credentials in Vercel
 2. Check Upstash Console for connection logs
 3. Test Redis connection:
@@ -422,6 +469,7 @@ npm run build
 ## Support
 
 For deployment issues:
+
 1. Check [Vercel Status Page](https://www.vercel-status.com/)
 2. Review Vercel deployment logs
 3. Check this troubleshooting guide

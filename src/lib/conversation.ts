@@ -1,14 +1,18 @@
-import { kv } from "@vercel/kv";
-import { ConversationState, Message } from "./agent-config";
-import { AgentInputItem } from "@openai/agents";
-import { CONVERSATION_TTL } from "./constants";
+import { kv } from '@vercel/kv';
+import { ConversationState, Message } from './agent-config';
+import { AgentInputItem } from '@openai/agents';
+import { CONVERSATION_TTL } from './constants';
 
-export async function getConversation(userId: string): Promise<ConversationState | null> {
+export async function getConversation(
+  userId: string
+): Promise<ConversationState | null> {
   const key = `conversation:${userId}`;
   return await kv.get<ConversationState>(key);
 }
 
-export async function saveConversation(state: ConversationState): Promise<void> {
+export async function saveConversation(
+  state: ConversationState
+): Promise<void> {
   const key = `conversation:${state.userId}`;
   await kv.set(key, state, { ex: CONVERSATION_TTL });
 }
@@ -29,7 +33,7 @@ export async function addMessage(
     conversation = {
       userId,
       messages: [],
-      agentHistory: []
+      agentHistory: [],
     };
   }
 

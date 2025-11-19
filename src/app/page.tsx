@@ -1,7 +1,7 @@
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import Link from "next/link";
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -34,7 +34,9 @@ export default function Home() {
             Chat with an AI powered by my professional experience
           </h2>
           <p className="text-xl text-muted-foreground">
-            Ask about my data platform architecture, AI engineering experience, team leadership, or technical expertise across the full data and AI stack.
+            Ask about my data platform architecture, AI engineering experience,
+            team leadership, or technical expertise across the full data and AI
+            stack.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
@@ -75,9 +77,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t p-4 text-center text-sm text-muted-foreground">
-        <p>
-          Built with Next.js, OpenAI AgentSDK, and modern web technologies
-        </p>
+        <p>Built with Next.js, OpenAI AgentSDK, and modern web technologies</p>
       </footer>
     </div>
   );

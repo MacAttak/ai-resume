@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Enable Turbopack (default in Next.js 16, explicit config to silence warnings)
@@ -11,19 +11,19 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/api/:path*",
+        source: '/api/:path*',
         headers: [
           {
-            key: "Cache-Control",
-            value: "no-cache, no-store, must-revalidate",
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
           },
           {
-            key: "Pragma",
-            value: "no-cache",
+            key: 'Pragma',
+            value: 'no-cache',
           },
           {
-            key: "Expires",
-            value: "0",
+            key: 'Expires',
+            value: '0',
           },
         ],
       },

@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { ScrollArea } from "./ui/scroll-area";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Streamdown } from "streamdown";
-import { Copy, Check, RotateCcw, ThumbsUp, ThumbsDown } from "lucide-react";
-import { Button } from "./ui/button";
+import { useEffect, useRef, useState } from 'react';
+import { ScrollArea } from './ui/scroll-area';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { Streamdown } from 'streamdown';
+import { Copy, Check, RotateCcw, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Button } from './ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
+} from './ui/dropdown-menu';
+import { MoreVertical } from 'lucide-react';
 
 type Message = {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   id?: string;
 };
@@ -24,7 +24,7 @@ function MessageActions({
   message,
   onCopy,
   onRegenerate,
-  onFeedback
+  onFeedback,
 }: {
   message: Message;
   onCopy: () => void;
@@ -47,13 +47,13 @@ function MessageActions({
           <Copy className="h-4 w-4 mr-2" />
           Copy message
         </DropdownMenuItem>
-        {message.role === "assistant" && onRegenerate && (
+        {message.role === 'assistant' && onRegenerate && (
           <DropdownMenuItem onClick={onRegenerate}>
             <RotateCcw className="h-4 w-4 mr-2" />
             Regenerate
           </DropdownMenuItem>
         )}
-        {message.role === "assistant" && onFeedback && (
+        {message.role === 'assistant' && onFeedback && (
           <>
             <DropdownMenuItem onClick={() => onFeedback(true)}>
               <ThumbsUp className="h-4 w-4 mr-2" />
@@ -74,7 +74,7 @@ export function MessageList({
   messages,
   isLoading,
   onRegenerate,
-  onFeedback
+  onFeedback,
 }: {
   messages: Message[];
   isLoading: boolean;
@@ -105,10 +105,10 @@ export function MessageList({
           <div
             key={`${index}-${message.content.length}`}
             className={`group flex gap-3 ${
-              message.role === "user" ? "justify-end" : "justify-start"
+              message.role === 'user' ? 'justify-end' : 'justify-start'
             }`}
           >
-            {message.role === "assistant" && (
+            {message.role === 'assistant' && (
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
                   DM
@@ -119,15 +119,13 @@ export function MessageList({
             <div className="flex flex-col gap-1 max-w-[85%]">
               <div
                 className={`rounded-2xl px-4 py-3 text-left ${
-                  message.role === "user"
-                    ? "bg-primary"
-                    : "bg-muted"
+                  message.role === 'user' ? 'bg-primary' : 'bg-muted'
                 }`}
               >
-                {message.role === "user" ? (
+                {message.role === 'user' ? (
                   // User messages: simple text, no markdown - ensure good contrast and left alignment
-                  <div 
-                    className="whitespace-pre-wrap break-words text-left" 
+                  <div
+                    className="whitespace-pre-wrap break-words text-left"
                     style={{ color: 'hsl(var(--primary-foreground))' }}
                   >
                     {message.content}
@@ -135,20 +133,28 @@ export function MessageList({
                 ) : (
                   // Assistant messages: render with Streamdown (handles streaming markdown)
                   // Streamdown includes remarkGfm, remarkMath, and other plugins by default
-                  <Streamdown isAnimating={isLoading && index === messages.length - 1}>
-                    {message.content || ""}
+                  <Streamdown
+                    isAnimating={isLoading && index === messages.length - 1}
+                  >
+                    {message.content || ''}
                   </Streamdown>
                 )}
               </div>
-              
+
               {/* Message Actions */}
-              {message.role === "assistant" && (
+              {message.role === 'assistant' && (
                 <div className="flex items-center gap-2 px-1">
                   <MessageActions
                     message={message}
                     onCopy={() => handleCopy(message.content, index)}
-                    onRegenerate={onRegenerate ? () => onRegenerate(index) : undefined}
-                    onFeedback={onFeedback ? (positive) => onFeedback(index, positive) : undefined}
+                    onRegenerate={
+                      onRegenerate ? () => onRegenerate(index) : undefined
+                    }
+                    onFeedback={
+                      onFeedback
+                        ? (positive) => onFeedback(index, positive)
+                        : undefined
+                    }
                   />
                   {copiedIndex === index && (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -160,7 +166,7 @@ export function MessageList({
               )}
             </div>
 
-            {message.role === "user" && (
+            {message.role === 'user' && (
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
                   You
@@ -184,7 +190,9 @@ export function MessageList({
                   <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.2s]" />
                   <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.4s]" />
                 </div>
-                <span className="text-xs text-muted-foreground ml-2">Thinking...</span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  Thinking...
+                </span>
               </div>
             </div>
           </div>
