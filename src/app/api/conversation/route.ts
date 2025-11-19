@@ -1,17 +1,14 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { getConversation } from "@/lib/conversation";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { auth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import { getConversation } from '@/lib/conversation';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET() {
   try {
     // 1. Verify authentication
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // 2. Get conversation history
@@ -26,16 +23,14 @@ export async function GET() {
         minuteRemaining: rateLimitStatus.minuteRemaining,
         dayRemaining: rateLimitStatus.dayRemaining,
         resetMinute: rateLimitStatus.resetMinute,
-        resetDay: rateLimitStatus.resetDay
-      }
+        resetDay: rateLimitStatus.resetDay,
+      },
     });
-
   } catch (error) {
-    console.error("Conversation API error:", error);
+    console.error('Conversation API error:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

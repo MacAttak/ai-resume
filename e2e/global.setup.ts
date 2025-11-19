@@ -26,10 +26,12 @@ setup('authenticate with Clerk', async ({ page }) => {
   await page.waitForLoadState('networkidle');
 
   // Verify we're actually signed in
-  await expect(page.locator('h1:has-text("Chat with Daniel McCarthy")')).toBeVisible();
+  await expect(
+    page.locator('h1:has-text("Chat with Daniel McCarthy")')
+  ).toBeVisible();
 
   // Save the authenticated state for all tests to use
   await page.context().storageState({
-    path: 'playwright/.clerk/user.json'
+    path: 'playwright/.clerk/user.json',
   });
 });

@@ -6,7 +6,11 @@ vi.mock('@vercel/kv');
 vi.mock('@upstash/ratelimit');
 
 // Import after mocks
-import { checkRateLimit, ratelimitPerMinute, ratelimitPerDay } from '../rate-limit';
+import {
+  checkRateLimit,
+  ratelimitPerMinute,
+  ratelimitPerDay,
+} from '../rate-limit';
 
 describe('checkRateLimit', () => {
   beforeEach(() => {
@@ -99,4 +103,3 @@ describe('checkRateLimit', () => {
     expect(result.resetDay.getTime()).toBe(dayReset);
   });
 });
-

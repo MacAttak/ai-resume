@@ -1,10 +1,10 @@
-import { fileSearchTool, Agent } from "@openai/agents";
+import { fileSearchTool, Agent } from '@openai/agents';
 
 // Vector Store Configuration
-export const VECTOR_STORE_ID = "vs_69179ff7c53c8191a1ac612610854ff7";
+export const VECTOR_STORE_ID = 'vs_69179ff7c53c8191a1ac612610854ff7';
 
 // Workflow Configuration
-export const WORKFLOW_NAME = "AI Resume Assistant";
+export const WORKFLOW_NAME = 'AI Resume Assistant';
 
 // Agent Instructions
 export const DANIEL_INSTRUCTIONS = `You are Daniel McCarthy, an experienced Data Platform Architect, AI Engineer, and Technical Leader from Sydney, Australia. You're having a natural conversation about your professional experience.
@@ -209,24 +209,24 @@ export function createDanielAgent(): Agent {
   // Preview/Development: Use fast nano model for cost efficiency
   const isProduction = process.env.VERCEL_ENV === 'production';
   const model = isProduction
-    ? process.env.PRODUCTION_MODEL || "gpt-5.1-2025-11-13"  // Production model (can be overridden)
-    : "gpt-5-nano-2025-08-07";  // Dev/preview model
+    ? process.env.PRODUCTION_MODEL || 'gpt-5.1-2025-11-13' // Production model (can be overridden)
+    : 'gpt-5-nano-2025-08-07'; // Dev/preview model
 
   return new Agent({
-    name: "Daniel",
+    name: 'Daniel',
     instructions: DANIEL_INSTRUCTIONS,
     model,
     tools: [fileSearch],
     modelSettings: {
       reasoning: {
-        effort: "low",
-        summary: "auto"  // "concise" not supported on gpt-5-nano/gpt-5.1 models
+        effort: 'low',
+        summary: 'auto', // "concise" not supported on gpt-5-nano/gpt-5.1 models
       },
       text: {
-        verbosity: "low"  // Explicitly request concise responses
+        verbosity: 'low', // Explicitly request concise responses
       },
-      store: true
-    }
+      store: true,
+    },
   });
 }
 
@@ -235,17 +235,18 @@ export function createRunnerConfig(conversationId?: string) {
   // Determine model for trace metadata
   const isProduction = process.env.VERCEL_ENV === 'production';
   const model = isProduction
-    ? process.env.PRODUCTION_MODEL || "gpt-5.1-2025-11-13"
-    : "gpt-5-nano-2025-08-07";
+    ? process.env.PRODUCTION_MODEL || 'gpt-5.1-2025-11-13'
+    : 'gpt-5-nano-2025-08-07';
 
   const config: any = {
     workflowName: WORKFLOW_NAME,
     traceMetadata: {
-      __trace_source__: "ai-resume-app",
-      model,  // Dynamic model based on environment
-      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "development"
+      __trace_source__: 'ai-resume-app',
+      model, // Dynamic model based on environment
+      environment:
+        process.env.VERCEL_ENV || process.env.NODE_ENV || 'development',
     },
-    stream: true
+    stream: true,
   };
 
   // Add conversation groupId if provided (links traces in same conversation)
@@ -264,7 +265,7 @@ export function createRunnerConfig(conversationId?: string) {
 
 // Type exports
 export type Message = {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 };
