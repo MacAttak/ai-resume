@@ -1,9 +1,11 @@
 import { AgentInputItem, Runner } from '@openai/agents';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
+import { setCalToolsUserId } from './cal-tools';
 
 export async function* runDanielAgentStream(
   userMessage: string,
-  conversationHistory: AgentInputItem[] = []
+  conversationHistory: AgentInputItem[] = [],
+  userId?: string
 ): AsyncGenerator<{
   type: string;
   content?: string;
@@ -12,6 +14,9 @@ export async function* runDanielAgentStream(
   updatedHistory?: AgentInputItem[];
 }> {
   try {
+    // Set userId context for Cal.com tools
+    setCalToolsUserId(userId);
+
     // Add user message to conversation
     const newUserItem: AgentInputItem = {
       role: 'user',
@@ -35,7 +40,7 @@ export async function* runDanielAgentStream(
     let updatedHistory = [...fullHistory];
 
     try {
-      const daniel = createDanielAgent();
+      const daniel = createDanielAgent(userId);
       const result = await runner.run(daniel, fullHistory);
 
       // Check if result is an async iterable (streaming)
