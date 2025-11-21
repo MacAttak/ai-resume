@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import type { CalWebhookPayload } from '@/lib/cal-types';
 
 export const runtime = 'nodejs';

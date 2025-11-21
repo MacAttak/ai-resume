@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   Dialog,
@@ -13,8 +12,8 @@ import {
 import Cal, { getCalApi } from '@calcom/embed-react';
 
 interface BookingModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
 }
 
 export function BookingModal({ isOpen, onClose }: BookingModalProps) {
@@ -46,17 +45,40 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
         <DialogHeader>
           <DialogTitle>Book a 15-Minute Meeting with Daniel</DialogTitle>
           <DialogDescription>
-            {!isBookingStarted ? (
+            {isBookingStarted ? (
+              'Select a time that works for you'
+            ) : (
               <>Quick chats for initial introductions or brief discussions. Or{' '}
               <span className="font-medium text-foreground">ask me in the chat</span>{' '}
               to book for you!</>
-            ) : (
-              'Select a time that works for you'
             )}
           </DialogDescription>
         </DialogHeader>
 
-        {!isBookingStarted ? (
+        {isBookingStarted ? (
+          // Cal.com embed
+          <div className="space-y-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsBookingStarted(false)}
+              className="gap-2"
+            >
+              ← Back
+            </Button>
+
+            <div className="w-full min-h-[600px]">
+              <Cal
+                calLink="chatwithdan/15min"
+                style={{ width: '100%', height: '100%', overflow: 'scroll' }}
+                config={{
+                  layout: 'month_view',
+                  theme: 'light',
+                }}
+              />
+            </div>
+          </div>
+        ) : (
           // Start booking screen
           <div className="space-y-4 py-4">
             <Button
@@ -79,29 +101,6 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
                 <br />
                 Close this modal and ask me in the chat to check availability and book for you!
               </p>
-            </div>
-          </div>
-        ) : (
-          // Cal.com embed
-          <div className="space-y-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsBookingStarted(false)}
-              className="gap-2"
-            >
-              ← Back
-            </Button>
-
-            <div className="w-full min-h-[600px]">
-              <Cal
-                calLink="chatwithdan/15min"
-                style={{ width: '100%', height: '100%', overflow: 'scroll' }}
-                config={{
-                  layout: 'month_view',
-                  theme: 'light',
-                }}
-              />
             </div>
           </div>
         )}

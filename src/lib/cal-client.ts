@@ -24,6 +24,86 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Type guard for error cause with code property
+ */
+function hasErrorCode(cause: unknown): cause is { code: string } {
+  return typeof cause === 'object' && cause !== null && 'code' in cause;
+}
+
+/**
+ * Extract error cause information safely
+ */
+function getErrorCauseInfo(cause: unknown) {
+  if (typeof cause === 'object' && cause !== null) {
+    return {
+      message: 'message' in cause ? String(cause.message) : undefined,
+      code: 'code' in cause ? String(cause.code) : undefined,
+      name: 'name' in cause ? String(cause.name) : undefined,
+    };
+  }
+  return null;
+}
+
+/**
+ * Check if an error is retryable (timeout or connection error)
+ */
+function isRetryableError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  return (
+    error.name === 'AbortError' ||
+    error.name === 'TimeoutError' ||
+    error.message.includes('timeout') ||
+    error.message.includes('ETIMEDOUT') ||
+    error.message.includes('ECONNREFUSED') ||
+    error.message.includes('ECONNRESET') ||
+    error.message.includes('ENETUNREACH') ||
+    error.message.includes('UND_ERR_CONNECT_TIMEOUT') ||
+    error.message.includes('ConnectTimeoutError') ||
+    error.message.includes('fetch failed') ||
+    // Check cause chain for connection errors
+    (hasErrorCode(error.cause) && (
+      error.cause.code === 'UND_ERR_CONNECT_TIMEOUT' ||
+      error.cause.code === 'ETIMEDOUT' ||
+      error.cause.code === 'ECONNREFUSED' ||
+      error.cause.code === 'ECONNRESET'
+    ))
+  );
+}
+
+/**
+ * Parse Cal.com API error response
+ */
+async function parseApiError(response: Response, url: string): Promise<never> {
+  const errorText = await response.text();
+  let errorMessage = `Cal.com API error: ${response.status} ${response.statusText}`;
+
+  try {
+    const errorJson = JSON.parse(errorText);
+    // Handle different error formats from Cal.com API
+    if (typeof errorJson.message === 'string') {
+      errorMessage = errorJson.message;
+    } else if (typeof errorJson.error === 'string') {
+      errorMessage = errorJson.error;
+    } else if (errorJson.message || errorJson.error) {
+      // If message/error is an object, stringify it
+      errorMessage = `${errorMessage} - ${JSON.stringify(errorJson.message || errorJson.error)}`;
+    } else {
+      // Include full error response for debugging
+      errorMessage = `${errorMessage} - ${errorText}`;
+    }
+  } catch {
+    // If error is not JSON, include raw text
+    if (errorText) {
+      errorMessage = `${errorMessage} - ${errorText}`;
+    }
+  }
+
+  console.error('Cal.com API error:', { status: response.status, errorMessage, url });
+  throw new Error(errorMessage);
+}
+
+/**
  * Make authenticated request to Cal.com API with retry logic
  */
 async function calFetch<T>(
@@ -60,32 +140,7 @@ async function calFetch<T>(
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = `Cal.com API error: ${response.status} ${response.statusText}`;
-
-        try {
-          const errorJson = JSON.parse(errorText);
-          // Handle different error formats from Cal.com API
-          if (typeof errorJson.message === 'string') {
-            errorMessage = errorJson.message;
-          } else if (typeof errorJson.error === 'string') {
-            errorMessage = errorJson.error;
-          } else if (errorJson.message || errorJson.error) {
-            // If message/error is an object, stringify it
-            errorMessage = `${errorMessage} - ${JSON.stringify(errorJson.message || errorJson.error)}`;
-          } else {
-            // Include full error response for debugging
-            errorMessage = `${errorMessage} - ${errorText}`;
-          }
-        } catch {
-          // If error is not JSON, include raw text
-          if (errorText) {
-            errorMessage = `${errorMessage} - ${errorText}`;
-          }
-        }
-
-        console.error('Cal.com API error:', { status: response.status, errorMessage, url });
-        throw new Error(errorMessage);
+        await parseApiError(response, url);
       }
 
       // Success - return response
@@ -93,39 +148,14 @@ async function calFetch<T>(
     } catch (error) {
       lastError = error as Error;
 
-      // Check if it's a timeout or connection error
-      const isRetryable =
-        error instanceof Error &&
-        (error.name === 'AbortError' ||
-         error.name === 'TimeoutError' ||
-         error.message.includes('timeout') ||
-         error.message.includes('ETIMEDOUT') ||
-         error.message.includes('ECONNREFUSED') ||
-         error.message.includes('ECONNRESET') ||
-         error.message.includes('ENETUNREACH') ||
-         error.message.includes('UND_ERR_CONNECT_TIMEOUT') ||
-         error.message.includes('ConnectTimeoutError') ||
-         error.message.includes('fetch failed') ||
-         // @ts-ignore - Check cause chain for connection errors
-         (error.cause && (
-           error.cause.code === 'UND_ERR_CONNECT_TIMEOUT' ||
-           error.cause.code === 'ETIMEDOUT' ||
-           error.cause.code === 'ECONNREFUSED' ||
-           error.cause.code === 'ECONNRESET'
-         )));
-
-      if (isRetryable && attempt < MAX_RETRIES) {
+      if (isRetryableError(error) && attempt < MAX_RETRIES) {
         // Progressive backoff: 2s, 4s, 8s (longer delays for connection issues)
         const backoffMs = Math.pow(2, attempt + 1) * 1000;
+
         console.warn(`Cal.com API request failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${backoffMs}ms...`, {
           error: error instanceof Error ? error.message : String(error),
           errorName: error instanceof Error ? error.name : 'Unknown',
-          // @ts-ignore - Log error cause for debugging
-          errorCause: error.cause ? {
-            message: error.cause.message,
-            code: error.cause.code,
-            name: error.cause.name
-          } : null,
+          errorCause: error instanceof Error ? getErrorCauseInfo(error.cause) : null,
           url,
         });
         await sleep(backoffMs);
@@ -192,8 +222,9 @@ export const calClient = {
       ? new URLSearchParams({ username })
       : '';
 
+    const queryString = searchParams ? `?${searchParams}` : '';
     return calFetch<CalEventTypesResponse>(
-      `/event-types${searchParams ? `?${searchParams}` : ''}`
+      `/event-types${queryString}`
     );
   },
 
@@ -231,7 +262,7 @@ export function getEventTypeId(duration: '15min' | '30min'): number {
     throw new Error(`CAL_EVENT_TYPE_ID_${duration.toUpperCase()} is not configured`);
   }
 
-  return parseInt(eventTypeId, 10);
+  return Number.parseInt(eventTypeId, 10);
 }
 
 /**

@@ -12,7 +12,6 @@ import {
   isAtLeast24HoursAway,
   getHoursUntil,
 } from './cal-client';
-import type { CalMeetingDuration } from './cal-types';
 
 const DEFAULT_TIMEZONE = 'Australia/Sydney';
 
@@ -20,17 +19,12 @@ const DEFAULT_TIMEZONE = 'Australia/Sydney';
 let currentUserId: string | undefined;
 
 /**
- * Format available slots for display in a concise, user-friendly format
+ * Convert UTC slots to local date groupings
  */
-function formatAvailableSlots(
+function regroupSlotsByLocalDate(
   slots: Record<string, Array<{ time: string }>>,
   timeZone: string
-): string {
-  if (Object.keys(slots).length === 0) {
-    return 'No available slots found in the requested date range. Please try different dates.';
-  }
-
-  // Convert all slots to timezone-aware dates and regroup by local date
+): Record<string, Date[]> {
   const slotsByLocalDate: Record<string, Date[]> = {};
 
   for (const utcDate of Object.keys(slots)) {
@@ -54,52 +48,46 @@ function formatAvailableSlots(
     }
   }
 
-  // Sort dates and format each day
-  const sortedDates = Object.keys(slotsByLocalDate).sort();
-  const formattedDays: string[] = [];
+  return slotsByLocalDate;
+}
 
-  for (const localDate of sortedDates) {
-    const times = slotsByLocalDate[localDate].sort((a, b) => a.getTime() - b.getTime());
+/**
+ * Group consecutive time slots into ranges
+ */
+function groupConsecutiveTimes(times: Date[], timeZone: string): string[] {
+  const timeRanges: string[] = [];
+  let rangeStart = times[0];
+  let rangeEnd = times[0];
 
-    // Format day name using first slot's time
-    const dayName = times[0].toLocaleDateString('en-AU', {
-      timeZone,
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-    });
+  for (let i = 1; i < times.length; i++) {
+    const timeDiff = times[i].getTime() - rangeEnd.getTime();
 
-    // Group consecutive times into ranges
-    const timeRanges: string[] = [];
-    let rangeStart = times[0];
-    let rangeEnd = times[0];
-
-    for (let i = 1; i < times.length; i++) {
-      const timeDiff = times[i].getTime() - rangeEnd.getTime();
-
-      // If slots are consecutive (15 min apart), extend the range
-      if (timeDiff === 15 * 60 * 1000) {
-        rangeEnd = times[i];
-      } else {
-        // Save current range and start new one
-        timeRanges.push(formatTimeRange(rangeStart, rangeEnd, timeZone));
-        rangeStart = times[i];
-        rangeEnd = times[i];
-      }
+    // If slots are consecutive (15 min apart), extend the range
+    if (timeDiff === 15 * 60 * 1000) {
+      rangeEnd = times[i];
+    } else {
+      // Save current range and start new one
+      timeRanges.push(formatTimeRange(rangeStart, rangeEnd, timeZone));
+      rangeStart = times[i];
+      rangeEnd = times[i];
     }
-
-    // Add final range
-    timeRanges.push(formatTimeRange(rangeStart, rangeEnd, timeZone));
-
-    formattedDays.push(`**${dayName}**: ${timeRanges.join(', ')}`);
   }
 
-  // Build response with user-friendly format
-  let response = `I have availability over the next two weeks:\n\n${formattedDays.join('\n')}`;
+  // Add final range
+  timeRanges.push(formatTimeRange(rangeStart, rangeEnd, timeZone));
+  return timeRanges;
+}
 
-  // Add technical details section with UTC timestamps for booking
-  response += '\n\n---\n**Technical Details (for booking):**\n';
-  response += 'When booking, use these EXACT UTC timestamps:\n\n';
+/**
+ * Format technical details section with UTC timestamps
+ */
+function formatTechnicalDetails(
+  sortedDates: string[],
+  slotsByLocalDate: Record<string, Date[]>,
+  timeZone: string
+): string {
+  let details = '\n\n---\n**Technical Details (for booking):**\n';
+  details += 'When booking, use these EXACT UTC timestamps:\n\n';
 
   for (const localDate of sortedDates) {
     const times = slotsByLocalDate[localDate];
@@ -110,7 +98,7 @@ function formatAvailableSlots(
       month: 'short',
     });
 
-    response += `${dayName}:\n`;
+    details += `${dayName}:\n`;
 
     for (const time of times) {
       const localTime = time.toLocaleTimeString('en-AU', {
@@ -119,10 +107,52 @@ function formatAvailableSlots(
         minute: '2-digit',
         hour12: true,
       });
-      response += `  • ${localTime} = \`${time.toISOString()}\`\n`;
+      details += `  • ${localTime} = \`${time.toISOString()}\`\n`;
     }
   }
 
+  return details;
+}
+
+/**
+ * Format available slots for display in a concise, user-friendly format
+ */
+function formatAvailableSlots(
+  slots: Record<string, Array<{ time: string }>>,
+  timeZone: string
+): string {
+  if (Object.keys(slots).length === 0) {
+    return 'No available slots found in the requested date range. Please try different dates.';
+  }
+
+  // Convert all slots to timezone-aware dates and regroup by local date
+  const slotsByLocalDate = regroupSlotsByLocalDate(slots, timeZone);
+
+  // Sort dates and format each day
+  const sortedDates = Object.keys(slotsByLocalDate).sort((a, b) => a.localeCompare(b));
+  const formattedDays: string[] = [];
+
+  for (const localDate of sortedDates) {
+    const times = slotsByLocalDate[localDate].toSorted((a, b) => a.getTime() - b.getTime());
+
+    // Format day name using first slot's time
+    const dayName = times[0].toLocaleDateString('en-AU', {
+      timeZone,
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+
+    // Group consecutive times into ranges
+    const timeRanges = groupConsecutiveTimes(times, timeZone);
+    formattedDays.push(`**${dayName}**: ${timeRanges.join(', ')}`);
+  }
+
+  // Build response with user-friendly format
+  let response = `I have availability over the next two weeks:\n\n${formattedDays.join('\n')}`;
+
+  // Add technical details section with UTC timestamps for booking
+  response += formatTechnicalDetails(sortedDates, slotsByLocalDate, timeZone);
   response += '\nWhich day and time works best for you?';
 
   // For debugging - include raw slot mapping
@@ -336,7 +366,7 @@ export const bookMeeting = tool({
 
       // Parse and validate it's a valid ISO 8601 datetime
       const parsedDate = new Date(datetime);
-      if (isNaN(parsedDate.getTime())) {
+      if (Number.isNaN(parsedDate.getTime())) {
         return `Invalid datetime: "${datetime}" is not a valid ISO 8601 timestamp. Please use the exact UTC timestamp from the availability response.`;
       }
 
