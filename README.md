@@ -110,22 +110,22 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Environment Variables
 
-| Variable                            | Description                                          | Required |
-| ----------------------------------- | ---------------------------------------------------- | -------- |
-| `OPENAI_API_KEY`                    | OpenAI API key for AgentSDK                          | Yes      |
-| `OPENAI_PROJECT_ID`                 | OpenAI project ID (optional, for project resources)  | No       |
-| `PRODUCTION_MODEL`                  | Production model override (default: gpt-5.1)         | No       |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                                | Yes      |
-| `CLERK_SECRET_KEY`                  | Clerk secret key                                     | Yes      |
-| `UPSTASH_REDIS_REST_URL`            | Upstash Redis URL                                    | Yes      |
-| `UPSTASH_REDIS_REST_TOKEN`          | Upstash Redis token                                  | Yes      |
-| `KV_REST_API_URL`                   | Vercel KV URL (auto-added)                           | Yes      |
-| `KV_REST_API_TOKEN`                 | Vercel KV token (auto-added)                         | Yes      |
-| `CAL_API_KEY`                       | Cal.com API v2 key (for meeting booking)             | Yes*     |
-| `CAL_EVENT_TYPE_ID_15MIN`           | Cal.com event type ID for 15min meetings             | Yes*     |
-| `CAL_EVENT_TYPE_ID_30MIN`           | Cal.com event type ID for 30min meetings             | Yes*     |
-| `NEXT_PUBLIC_CAL_USERNAME`          | Cal.com username for inline booking embed            | Yes*     |
-| `CAL_WEBHOOK_SECRET`                | Cal.com webhook secret for signature verification    | No       |
+| Variable                            | Description                                         | Required |
+| ----------------------------------- | --------------------------------------------------- | -------- |
+| `OPENAI_API_KEY`                    | OpenAI API key for AgentSDK                         | Yes      |
+| `OPENAI_PROJECT_ID`                 | OpenAI project ID (optional, for project resources) | No       |
+| `PRODUCTION_MODEL`                  | Production model override (default: gpt-5.1)        | No       |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                               | Yes      |
+| `CLERK_SECRET_KEY`                  | Clerk secret key                                    | Yes      |
+| `UPSTASH_REDIS_REST_URL`            | Upstash Redis URL                                   | Yes      |
+| `UPSTASH_REDIS_REST_TOKEN`          | Upstash Redis token                                 | Yes      |
+| `KV_REST_API_URL`                   | Vercel KV URL (auto-added)                          | Yes      |
+| `KV_REST_API_TOKEN`                 | Vercel KV token (auto-added)                        | Yes      |
+| `CAL_API_KEY`                       | Cal.com API v2 key (for meeting booking)            | Yes\*    |
+| `CAL_EVENT_TYPE_ID_15MIN`           | Cal.com event type ID for 15min meetings            | Yes\*    |
+| `CAL_EVENT_TYPE_ID_30MIN`           | Cal.com event type ID for 30min meetings            | Yes\*    |
+| `NEXT_PUBLIC_CAL_USERNAME`          | Cal.com username for inline booking embed           | Yes\*    |
+| `CAL_WEBHOOK_SECRET`                | Cal.com webhook secret for signature verification   | No       |
 
 \* Required for meeting booking functionality
 
@@ -190,6 +190,7 @@ src/
 ## Key Technical Decisions
 
 ### Time Management Architecture
+
 Research showed that LLMs have architectural limitations with temporal calculations, leading to off-by-one errors and timezone mistakes. Our implementation follows industry best practices:
 
 - **Tools handle ALL time conversions** - The LLM never calculates dates or converts timezones
@@ -200,6 +201,7 @@ Research showed that LLMs have architectural limitations with temporal calculati
 This architecture eliminates LLM temporal reasoning errors while maintaining a clean UX.
 
 ### Cal.com API Integration
+
 - **30-minute availability window** - Wide enough for Cal.com's date-grouped API while preventing race conditions
 - **Network resilience** - 60s timeout, 3 retries, exponential backoff (2s, 4s, 8s)
 - **Smart date regrouping** - Slots regrouped by local Sydney date instead of UTC date key

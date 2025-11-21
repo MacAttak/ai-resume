@@ -75,7 +75,12 @@ export interface CalEventTypesResponse {
 }
 
 export interface CalWebhookPayload {
-  triggerEvent: 'BOOKING_CREATED' | 'BOOKING_RESCHEDULED' | 'BOOKING_CANCELLED' | 'BOOKING_PAYMENT_INITIATED' | 'BOOKING_PAID';
+  triggerEvent:
+    | 'BOOKING_CREATED'
+    | 'BOOKING_RESCHEDULED'
+    | 'BOOKING_CANCELLED'
+    | 'BOOKING_PAYMENT_INITIATED'
+    | 'BOOKING_PAID';
   createdAt: string;
   payload: {
     booking: CalBooking;

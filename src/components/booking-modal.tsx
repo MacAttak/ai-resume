@@ -48,9 +48,13 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
             {isBookingStarted ? (
               'Select a time that works for you'
             ) : (
-              <>Quick chats for initial introductions or brief discussions. Or{' '}
-              <span className="font-medium text-foreground">ask me in the chat</span>{' '}
-              to book for you!</>
+              <>
+                Quick chats for initial introductions or brief discussions. Or{' '}
+                <span className="font-medium text-foreground">
+                  ask me in the chat
+                </span>{' '}
+                to book for you!
+              </>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -88,7 +92,9 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
               onClick={() => setIsBookingStarted(true)}
             >
               <div className="flex flex-col gap-2">
-                <div className="font-semibold text-lg">View Available Times</div>
+                <div className="font-semibold text-lg">
+                  View Available Times
+                </div>
                 <div className="text-sm opacity-90">
                   Select from Daniel's available 15-minute time slots
                 </div>
@@ -97,9 +103,13 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
             <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
               <p className="text-sm text-muted-foreground">
-                💡 <span className="font-medium text-foreground">Prefer a conversational approach?</span>
+                💡{' '}
+                <span className="font-medium text-foreground">
+                  Prefer a conversational approach?
+                </span>
                 <br />
-                Close this modal and ask me in the chat to check availability and book for you!
+                Close this modal and ask me in the chat to check availability
+                and book for you!
               </p>
             </div>
           </div>

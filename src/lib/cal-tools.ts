@@ -34,12 +34,16 @@ function regroupSlotsByLocalDate(
       const slotTime = new Date(slot.time);
 
       // Get the local date in the target timezone (e.g., "2025-11-24" in Sydney time)
-      const localDateString = slotTime.toLocaleDateString('en-AU', {
-        timeZone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).split('/').reverse().join('-'); // Convert "24/11/2025" to "2025-11-24"
+      const localDateString = slotTime
+        .toLocaleDateString('en-AU', {
+          timeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        })
+        .split('/')
+        .reverse()
+        .join('-'); // Convert "24/11/2025" to "2025-11-24"
 
       if (!slotsByLocalDate[localDateString]) {
         slotsByLocalDate[localDateString] = [];
@@ -129,11 +133,15 @@ function formatAvailableSlots(
   const slotsByLocalDate = regroupSlotsByLocalDate(slots, timeZone);
 
   // Sort dates and format each day
-  const sortedDates = Object.keys(slotsByLocalDate).sort((a, b) => a.localeCompare(b));
+  const sortedDates = Object.keys(slotsByLocalDate).sort((a, b) =>
+    a.localeCompare(b)
+  );
   const formattedDays: string[] = [];
 
   for (const localDate of sortedDates) {
-    const times = slotsByLocalDate[localDate].toSorted((a, b) => a.getTime() - b.getTime());
+    const times = slotsByLocalDate[localDate].toSorted(
+      (a, b) => a.getTime() - b.getTime()
+    );
 
     // Format day name using first slot's time
     const dayName = times[0].toLocaleDateString('en-AU', {
@@ -161,9 +169,9 @@ function formatAvailableSlots(
     slotsByLocalDate: Object.fromEntries(
       Object.entries(slotsByLocalDate).map(([date, times]) => [
         date,
-        times.map(t => t.toISOString())
+        times.map((t) => t.toISOString()),
       ])
-    )
+    ),
   });
 
   return response;
@@ -253,7 +261,9 @@ export const checkMeetingAvailability = tool({
       .string()
       .nullable()
       .optional()
-      .describe('Optional: Timezone for displaying slots (default: Australia/Sydney)'),
+      .describe(
+        'Optional: Timezone for displaying slots (default: Australia/Sydney)'
+      ),
   }),
   async execute({ startDate, endDate, timezone }) {
     try {
@@ -304,7 +314,10 @@ export const checkMeetingAvailability = tool({
         return 'I encountered an issue checking availability. Please try again or contact support.';
       }
 
-      if (!response.data?.slots || Object.keys(response.data.slots).length === 0) {
+      if (
+        !response.data?.slots ||
+        Object.keys(response.data.slots).length === 0
+      ) {
         return `No available slots found between ${startTime.toISOString()} and ${endTime.toISOString()}. This might be because all slots are within the 24-hour minimum notice period, or there are no available times in this date range.`;
       }
 
@@ -358,7 +371,7 @@ export const bookMeeting = tool({
       if (!datetime.endsWith('Z')) {
         console.error('Invalid datetime format - must end with Z:', {
           provided: datetime,
-          expected: 'UTC format like "2025-11-24T01:00:00.000Z"'
+          expected: 'UTC format like "2025-11-24T01:00:00.000Z"',
         });
 
         return `Invalid datetime format: "${datetime}". The time MUST be in UTC format with "Z" suffix (e.g., "2025-11-24T01:00:00.000Z"). Look at the "Technical Details (for booking)" section from the availability response and copy the EXACT UTC timestamp shown there. DO NOT construct timestamps yourself.`;
@@ -376,7 +389,7 @@ export const bookMeeting = tool({
       console.log('Validating booking datetime:', {
         provided: datetime,
         normalized: utcDatetime,
-        isExactMatch: datetime === utcDatetime
+        isExactMatch: datetime === utcDatetime,
       });
 
       // Validate 24-hour minimum notice
@@ -398,21 +411,27 @@ export const bookMeeting = tool({
 
       const availabilityCheck = await calClient.getAvailableSlots({
         eventTypeId,
-        start: new Date(new Date(utcDatetime).getTime() - 30 * 60 * 1000).toISOString(), // 30 min before
-        end: new Date(new Date(utcDatetime).getTime() + 30 * 60 * 1000).toISOString(), // 30 min after
+        start: new Date(
+          new Date(utcDatetime).getTime() - 30 * 60 * 1000
+        ).toISOString(), // 30 min before
+        end: new Date(
+          new Date(utcDatetime).getTime() + 30 * 60 * 1000
+        ).toISOString(), // 30 min after
         timeZone: attendeeTimezone,
       });
 
       // Check if the requested slot is still available
-      const isStillAvailable = Object.values(availabilityCheck.data?.slots || {}).some(slots =>
-        slots.some(slot => slot.time === utcDatetime)
-      );
+      const isStillAvailable = Object.values(
+        availabilityCheck.data?.slots || {}
+      ).some((slots) => slots.some((slot) => slot.time === utcDatetime));
 
       console.log('Availability re-check result:', {
         slotsFound: Object.keys(availabilityCheck.data?.slots || {}).length,
         targetSlot: utcDatetime,
         isStillAvailable,
-        availableSlots: Object.values(availabilityCheck.data?.slots || {}).flat().map(s => s.time)
+        availableSlots: Object.values(availabilityCheck.data?.slots || {})
+          .flat()
+          .map((s) => s.time),
       });
 
       if (!isStillAvailable) {
@@ -464,7 +483,7 @@ export const bookMeeting = tool({
 export const getUserDetails = tool({
   name: 'get_user_details',
   description:
-    'Get the authenticated user\'s name and email from Clerk. Use this before booking a meeting to pre-fill attendee information. Always ask the user to CONFIRM these details before proceeding with booking.',
+    "Get the authenticated user's name and email from Clerk. Use this before booking a meeting to pre-fill attendee information. Always ask the user to CONFIRM these details before proceeding with booking.",
   parameters: z.object({}),
   async execute() {
     try {
@@ -481,7 +500,8 @@ export const getUserDetails = tool({
       const client = await clerkClient();
       const user = await client.users.getUser(currentUserId);
 
-      const name = user.fullName || user.firstName || user.username || 'Unknown';
+      const name =
+        user.fullName || user.firstName || user.username || 'Unknown';
       const email =
         user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
           ?.emailAddress || 'No email found';
@@ -516,5 +536,10 @@ export function setCalToolsUserId(userId: string | undefined) {
  * Export all Cal.com tools
  */
 export function createCalendarTools() {
-  return [getCurrentDateTime, checkMeetingAvailability, bookMeeting, getUserDetails];
+  return [
+    getCurrentDateTime,
+    checkMeetingAvailability,
+    bookMeeting,
+    getUserDetails,
+  ];
 }

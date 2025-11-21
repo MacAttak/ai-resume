@@ -20,7 +20,7 @@ const MAX_RETRIES = 3; // Increased retries for connection issues
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -62,12 +62,11 @@ function isRetryableError(error: unknown): boolean {
     error.message.includes('ConnectTimeoutError') ||
     error.message.includes('fetch failed') ||
     // Check cause chain for connection errors
-    (hasErrorCode(error.cause) && (
-      error.cause.code === 'UND_ERR_CONNECT_TIMEOUT' ||
-      error.cause.code === 'ETIMEDOUT' ||
-      error.cause.code === 'ECONNREFUSED' ||
-      error.cause.code === 'ECONNRESET'
-    ))
+    (hasErrorCode(error.cause) &&
+      (error.cause.code === 'UND_ERR_CONNECT_TIMEOUT' ||
+        error.cause.code === 'ETIMEDOUT' ||
+        error.cause.code === 'ECONNREFUSED' ||
+        error.cause.code === 'ECONNRESET'))
   );
 }
 
@@ -99,7 +98,11 @@ async function parseApiError(response: Response, url: string): Promise<never> {
     }
   }
 
-  console.error('Cal.com API error:', { status: response.status, errorMessage, url });
+  console.error('Cal.com API error:', {
+    status: response.status,
+    errorMessage,
+    url,
+  });
   throw new Error(errorMessage);
 }
 
@@ -124,7 +127,10 @@ async function calFetch<T>(
     try {
       // Create abort controller for timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        REQUEST_TIMEOUT_MS
+      );
 
       const response = await fetch(url, {
         ...options,
@@ -152,12 +158,16 @@ async function calFetch<T>(
         // Progressive backoff: 2s, 4s, 8s (longer delays for connection issues)
         const backoffMs = Math.pow(2, attempt + 1) * 1000;
 
-        console.warn(`Cal.com API request failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${backoffMs}ms...`, {
-          error: error instanceof Error ? error.message : String(error),
-          errorName: error instanceof Error ? error.name : 'Unknown',
-          errorCause: error instanceof Error ? getErrorCauseInfo(error.cause) : null,
-          url,
-        });
+        console.warn(
+          `Cal.com API request failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${backoffMs}ms...`,
+          {
+            error: error instanceof Error ? error.message : String(error),
+            errorName: error instanceof Error ? error.name : 'Unknown',
+            errorCause:
+              error instanceof Error ? getErrorCauseInfo(error.cause) : null,
+            url,
+          }
+        );
         await sleep(backoffMs);
         continue; // Retry
       }
@@ -199,15 +209,15 @@ export const calClient = {
       format: 'range', // Request both start and end times for each slot
     });
 
-    return calFetch<CalAvailabilityResponse>(`/slots/available?${searchParams}`);
+    return calFetch<CalAvailabilityResponse>(
+      `/slots/available?${searchParams}`
+    );
   },
 
   /**
    * Create a new booking
    */
-  async createBooking(
-    data: CalBookingRequest
-  ): Promise<CalBookingResponse> {
+  async createBooking(data: CalBookingRequest): Promise<CalBookingResponse> {
     return calFetch<CalBookingResponse>('/bookings', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -218,14 +228,10 @@ export const calClient = {
    * Get event types for a user
    */
   async getEventTypes(username?: string): Promise<CalEventTypesResponse> {
-    const searchParams = username
-      ? new URLSearchParams({ username })
-      : '';
+    const searchParams = username ? new URLSearchParams({ username }) : '';
 
     const queryString = searchParams ? `?${searchParams}` : '';
-    return calFetch<CalEventTypesResponse>(
-      `/event-types${queryString}`
-    );
+    return calFetch<CalEventTypesResponse>(`/event-types${queryString}`);
   },
 
   /**
@@ -259,7 +265,9 @@ export function getEventTypeId(duration: '15min' | '30min'): number {
       : process.env.CAL_EVENT_TYPE_ID_30MIN;
 
   if (!eventTypeId) {
-    throw new Error(`CAL_EVENT_TYPE_ID_${duration.toUpperCase()} is not configured`);
+    throw new Error(
+      `CAL_EVENT_TYPE_ID_${duration.toUpperCase()} is not configured`
+    );
   }
 
   return Number.parseInt(eventTypeId, 10);

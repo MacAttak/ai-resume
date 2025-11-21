@@ -5,12 +5,14 @@ This document describes the Cal.com integration that enables meeting booking thr
 ## Features
 
 ### 1. **Traditional UI Booking**
+
 - "Book a Meeting" button in the chat interface header
 - Simple modal for 15-minute meetings
 - Inline Cal.com embed for selecting time slots
 - Direct calendar integration
 
 ### 2. **AI Agent Booking**
+
 - Natural conversation-based booking
 - Agent checks availability and shows time slots
 - Confirms user details before booking
@@ -18,6 +20,7 @@ This document describes the Cal.com integration that enables meeting booking thr
 - 15-minute meetings for quick chats
 
 ### 3. **Webhook Integration**
+
 - Receives booking confirmations from Cal.com
 - Logs all booking events
 - Signature verification for security
@@ -73,6 +76,7 @@ CAL_USERNAME=chatwithdan
 ### 3. Deploy
 
 Deploy your application and the webhook will automatically be available at:
+
 ```
 https://your-domain.com/api/cal/webhook
 ```
@@ -125,12 +129,14 @@ The AI agent has access to three tools for booking meetings:
 Checks available time slots for a date range.
 
 **Parameters:**
+
 - `duration`: "15min" or "30min"
 - `startDate`: YYYY-MM-DD (must be at least 24 hours from now)
 - `endDate`: YYYY-MM-DD
 - `timezone`: Default "Australia/Sydney"
 
 **Example:**
+
 ```
 User: "What times are you available next week?"
 Agent: [Uses check_meeting_availability with next week's dates]
@@ -143,6 +149,7 @@ Retrieves the authenticated user's name and email from Clerk.
 **No parameters required** - uses the current authenticated user's context.
 
 **Example:**
+
 ```
 User: "Book me for Tuesday at 2pm"
 Agent: [Uses get_user_details to pre-fill attendee info]
@@ -154,6 +161,7 @@ Agent: [Uses get_user_details to pre-fill attendee info]
 Creates a meeting booking.
 
 **Parameters:**
+
 - `duration`: "15min" or "30min"
 - `datetime`: ISO 8601 format (e.g., "2025-11-22T14:00:00")
 - `attendeeName`: Full name
@@ -162,6 +170,7 @@ Creates a meeting booking.
 - `notes`: Optional meeting notes
 
 **Example:**
+
 ```
 User: "Yes, book it"
 Agent: [Uses book_meeting with confirmed details]
@@ -179,6 +188,7 @@ The system enforces a 24-hour minimum notice period for all bookings:
 ## Email Confirmations
 
 Cal.com automatically sends email confirmations to:
+
 - **Daniel:** Organizer notification
 - **Attendee:** Calendar invite with meeting details
 
@@ -217,19 +227,23 @@ Cal.com automatically sends email confirmations to:
 ## Troubleshooting
 
 ### "CAL_API_KEY is not configured"
+
 - Ensure `.env.local` has `CAL_API_KEY=cal_live_...`
 - Restart development server after adding env vars
 
 ### "24 hours in advance" error
+
 - Check system timezone vs. user timezone
 - Verify date calculations are in UTC
 
 ### Webhook not receiving events
+
 - Verify webhook URL is publicly accessible
 - Check Cal.com webhook settings
 - Verify `CAL_WEBHOOK_SECRET` matches
 
 ### Tools not appearing in agent
+
 - Check `userId` is passed to agent
 - Verify tools are included in agent config
 - Check build logs for tool registration errors
@@ -237,6 +251,7 @@ Cal.com automatically sends email confirmations to:
 ## Future Enhancements
 
 Potential improvements:
+
 - Reschedule/cancel functionality
 - Multiple calendar support
 - Team member scheduling
@@ -251,6 +266,7 @@ Potential improvements:
 Documentation: https://cal.com/docs/api-reference
 
 Used endpoints:
+
 - `GET /v2/slots` - Get available slots
 - `POST /v2/bookings` - Create booking
 - `GET /v2/event-types` - List event types
@@ -259,6 +275,7 @@ Used endpoints:
 ## Support
 
 For issues related to:
+
 - **Cal.com API:** https://cal.com/docs
 - **OpenAI Agents SDK:** https://github.com/openai/agents-sdk
 - **This integration:** Create an issue in the repository
