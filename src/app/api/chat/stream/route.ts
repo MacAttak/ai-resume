@@ -56,7 +56,8 @@ export async function POST(req: NextRequest) {
           let lastSentLength = 0;
           for await (const event of runDanielAgentStream(
             message,
-            agentHistory
+            agentHistory,
+            userId
           )) {
             if (event.type === 'content' && event.content) {
               // Only send new content (prevent duplicates)
