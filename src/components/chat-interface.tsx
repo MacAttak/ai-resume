@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MessageList } from './message-list';
 import { ChatInput } from './chat-input';
 import { UsageDisplay } from './usage-display';
+import { BookingButton } from './booking-button';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { AlertCircle, Trash2 } from 'lucide-react';
@@ -191,6 +192,7 @@ export function ChatInterface() {
         </h1>
         <div className="flex gap-2 items-center">
           <UsageDisplay usage={usage} />
+          <BookingButton />
           <Button
             variant="outline"
             size="sm"
@@ -236,6 +238,7 @@ export function ChatInterface() {
                   'What data platforms have you worked with?',
                   'Tell me about your AI engineering experience',
                   "What's your leadership philosophy?",
+                  'I want to book a time to chat with the real Dan!',
                 ].map((suggestion, i) => (
                   <Button
                     key={i}
