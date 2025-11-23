@@ -2,14 +2,16 @@ import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
+import { AboutModal } from '@/components/AboutModal';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="border-b p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">Daniel McCarthy - AI Resume</h1>
+        <h1 className="text-xl font-bold">Agent McCarthy</h1>
         <div className="flex gap-2 items-center">
+          <AboutModal />
           <ThemeToggle />
           <SignedOut>
             <SignInButton mode="modal">
@@ -31,7 +33,7 @@ export default function Home() {
       <main className="flex-1 flex items-center justify-center p-8">
         <div className="max-w-2xl text-center space-y-6">
           <h2 className="text-4xl font-bold">
-            Chat with an AI powered by my professional experience
+            Chat with Agent McCarthy
           </h2>
           <p className="text-xl text-muted-foreground">
             Ask about my data platform architecture, AI engineering experience,
@@ -71,6 +73,11 @@ export default function Home() {
                 <Button size="lg">Start Chatting</Button>
               </Link>
             </SignedIn>
+            <AboutModal>
+              <Button variant="outline" size="lg" className="ml-2">
+                About Project
+              </Button>
+            </AboutModal>
           </div>
         </div>
       </main>

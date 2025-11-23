@@ -101,102 +101,110 @@ export function MessageList({
   return (
     <ScrollArea className="h-full pr-4" ref={scrollRef}>
       <div className="space-y-6 py-4 px-4">
-        {messages.map((message, index) => (
-          <div
-            key={`${index}-${message.content.length}`}
-            className={`group flex gap-3 ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            {message.role === 'assistant' && (
+        {messages.map((message, index) => {
+          // Don't render empty assistant messages (placeholders for streaming)
+          if (message.role === 'assistant' && !message.content) return null;
+
+          return (
+            <div
+              key={`${index}-${message.content.length}`}
+              className={`group flex gap-3 ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              {message.role === 'assistant' && (
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                    DM
+                  </AvatarFallback>
+                </Avatar>
+              )}
+
+              <div className="flex flex-col gap-1 max-w-[85%]">
+                <div
+                  className={`rounded-2xl px-4 py-3 text-left ${
+                    message.role === 'user' ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  {message.role === 'user' ? (
+                    // User messages: simple text, no markdown - ensure good contrast and left alignment
+                    <div
+                      className="whitespace-pre-wrap break-words text-left"
+                      style={{ color: 'hsl(var(--primary-foreground))' }}
+                    >
+                      {message.content}
+                    </div>
+                  ) : (
+                    // Assistant messages: render with Streamdown (handles streaming markdown)
+                    // Streamdown includes remarkGfm, remarkMath, and other plugins by default
+                    <Streamdown
+                      isAnimating={isLoading && index === messages.length - 1}
+                    >
+                      {message.content || ''}
+                    </Streamdown>
+                  )}
+                </div>
+
+                {/* Message Actions */}
+                {message.role === 'assistant' && (
+                  <div className="flex items-center gap-2 px-1">
+                    <MessageActions
+                      message={message}
+                      onCopy={() => handleCopy(message.content, index)}
+                      onRegenerate={
+                        onRegenerate ? () => onRegenerate(index) : undefined
+                      }
+                      onFeedback={
+                        onFeedback
+                          ? (positive) => onFeedback(index, positive)
+                          : undefined
+                      }
+                    />
+                    {copiedIndex === index && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        Copied
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {message.role === 'user' && (
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                    You
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          );
+        })}
+
+        {isLoading &&
+          (!messages.length ||
+            messages[messages.length - 1].role !== 'assistant' ||
+            !messages[messages.length - 1].content) && (
+            <div className="flex gap-3">
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
                   DM
                 </AvatarFallback>
               </Avatar>
-            )}
-
-            <div className="flex flex-col gap-1 max-w-[85%]">
-              <div
-                className={`rounded-2xl px-4 py-3 text-left ${
-                  message.role === 'user' ? 'bg-primary' : 'bg-muted'
-                }`}
-              >
-                {message.role === 'user' ? (
-                  // User messages: simple text, no markdown - ensure good contrast and left alignment
-                  <div
-                    className="whitespace-pre-wrap break-words text-left"
-                    style={{ color: 'hsl(var(--primary-foreground))' }}
-                  >
-                    {message.content}
+              <div className="rounded-2xl px-4 py-3 bg-muted">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.2s]" />
+                    <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.4s]" />
                   </div>
-                ) : (
-                  // Assistant messages: render with Streamdown (handles streaming markdown)
-                  // Streamdown includes remarkGfm, remarkMath, and other plugins by default
-                  <Streamdown
-                    isAnimating={isLoading && index === messages.length - 1}
-                  >
-                    {message.content || ''}
-                  </Streamdown>
-                )}
-              </div>
-
-              {/* Message Actions */}
-              {message.role === 'assistant' && (
-                <div className="flex items-center gap-2 px-1">
-                  <MessageActions
-                    message={message}
-                    onCopy={() => handleCopy(message.content, index)}
-                    onRegenerate={
-                      onRegenerate ? () => onRegenerate(index) : undefined
-                    }
-                    onFeedback={
-                      onFeedback
-                        ? (positive) => onFeedback(index, positive)
-                        : undefined
-                    }
-                  />
-                  {copiedIndex === index && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Check className="h-3 w-3" />
-                      Copied
-                    </span>
-                  )}
+                  <span className="text-xs text-muted-foreground ml-2">
+                    Thinking...
+                  </span>
                 </div>
-              )}
-            </div>
-
-            {message.role === 'user' && (
-              <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                  You
-                </AvatarFallback>
-              </Avatar>
-            )}
-          </div>
-        ))}
-
-        {isLoading && (
-          <div className="flex gap-3">
-            <Avatar className="h-8 w-8 flex-shrink-0">
-              <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                DM
-              </AvatarFallback>
-            </Avatar>
-            <div className="rounded-2xl px-4 py-3 bg-muted">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.4s]" />
-                </div>
-                <span className="text-xs text-muted-foreground ml-2">
-                  Thinking...
-                </span>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </ScrollArea>
   );

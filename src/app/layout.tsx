@@ -9,9 +9,9 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Daniel McCarthy - AI Resume',
+  title: 'Agent McCarthy - Interactive Career Agent',
   description:
-    "Chat with an AI powered by Daniel McCarthy's professional experience",
+    "Chat with Agent McCarthy, an AI powered by Daniel McCarthy's professional experience",
 };
 
 export default function RootLayout({
