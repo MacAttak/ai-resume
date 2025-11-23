@@ -5,16 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
-import Link from "next/link";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Info, Github, BookOpen, Cpu, Shield, Zap, Database } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface AboutModalProps {
-  children?: React.ReactNode;
-}
-
-export function AboutModal({ children }: AboutModalProps) {
+export function AboutModal({ children }: { children?: React.ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -25,67 +21,111 @@ export function AboutModal({ children }: AboutModalProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            🤖 Agent McCarthy
-          </DialogTitle>
-          <DialogDescription>
-            A production-grade conversational AI platform demonstrating enterprise-level AI engineering.
+          <DialogTitle className="text-2xl font-bold text-center">About Agent McCarthy</DialogTitle>
+          <DialogDescription className="text-center text-base mt-2">
+            An interactive career agent powered by advanced AI
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="bg-muted/50 p-4 rounded-lg border">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              ✨ AI Developed
-            </h3>
-            <p className="text-sm text-muted-foreground text-left">
-              This entire application was architected and built by AI agents (Claude Code and Google Antigravity) 
-              under the guidance of Daniel McCarthy. It serves as a living demonstration of modern AI-assisted 
-              software engineering.
+        <div className="space-y-8 py-4">
+          {/* AI Developed Preamble */}
+          <div className="bg-primary/5 p-6 rounded-xl border border-primary/10 text-center">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              <span className="font-semibold text-foreground">AI Native Development:</span> This entire application was architected and built by AI agents 
+              (<span className="font-medium text-foreground">Claude Code</span> and <span className="font-medium text-foreground">Google Antigravity</span>) 
+              under the guidance of Daniel McCarthy. It demonstrates the potential of human-AI collaboration in modern software engineering.
             </p>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Technical Highlights</h3>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <li className="flex gap-2">
-                <span className="font-medium">🧠 AI Stack:</span>
-                <span className="text-muted-foreground">OpenAI AgentSDK + GPT-5 (o3-mini)</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-medium">🔍 RAG:</span>
-                <span className="text-muted-foreground">Hybrid vector/keyword file search</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-medium">⚡ Performance:</span>
-                <span className="text-muted-foreground">&lt;2s response, streaming, edge deployed</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-medium">🛡️ Security:</span>
-                <span className="text-muted-foreground">Clerk Auth, Rate Limiting, Input Validation</span>
-              </li>
-            </ul>
+          {/* Technical Highlights Grid */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Cpu className="h-5 w-5 text-primary" />
+              Technical Highlights
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Database className="h-4 w-4 text-primary" />
+                    AI Stack
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Built with Next.js 14 (App Router), OpenAI AgentSDK for orchestration, and Vercel AI SDK for streaming responses.
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-primary" />
+                    RAG Architecture
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Retrieval-Augmented Generation using vector embeddings to ground responses in Daniel's actual professional experience.
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    Security & Auth
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Secure authentication via Clerk, with robust rate limiting and edge middleware protection.
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Cpu className="h-4 w-4 text-primary" />
+                    Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Optimized for edge deployment on Vercel with sub-second latency and streaming UI updates.
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Source Code & Docs</h3>
-            <div className="flex flex-wrap gap-4">
-              <Button asChild variant="outline">
-                <Link href="https://github.com/MacAttak/ai-resume" target="_blank" rel="noopener noreferrer">
-                  View on GitHub
-                </Link>
+          {/* Code & Docs - Centered */}
+          <div className="text-center space-y-4 pt-4 border-t">
+            <h3 className="text-lg font-semibold">Source Code & Documentation</h3>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              Explore the codebase and detailed technical documentation to see how this agent was built.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="outline" className="inline-flex items-center gap-2" asChild>
+                <a
+                  href="https://deepwiki.com/MacAttak/ai-resume"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2"
+                >
+                  <BookOpen className="h-5 w-5" />
+                  <span>Read the Docs</span>
+                </a>
               </Button>
-              <Button asChild variant="outline">
-                <Link href="https://deepwiki.com/MacAttak/ai-resume" target="_blank" rel="noopener noreferrer">
-                  Read Documentation
-                </Link>
+              <Button variant="outline" className="inline-flex items-center gap-2" asChild>
+                <a
+                  href="https://github.com/MacAttak/ai-resume"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2"
+                >
+                  <Github className="h-5 w-5" />
+                  <span>View on GitHub</span>
+                </a>
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Transparency is key. Explore the codebase to understand how enterprise-grade AI agents are built.
-            </p>
           </div>
         </div>
       </DialogContent>
