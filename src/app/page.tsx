@@ -82,10 +82,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t p-4 text-center text-sm text-muted-foreground">
-        <p>Built with Next.js, OpenAI AgentSDK, and modern web technologies</p>
-      </footer>
+
     </div>
   );
 }
