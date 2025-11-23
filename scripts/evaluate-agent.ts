@@ -6,20 +6,38 @@ import { evaluate, evaluator } from 'honeyhive';
 import { createDanielAgent, createRunnerConfig } from '../src/lib/agent-config';
 import { Runner } from '@openai/agents';
 import OpenAI from 'openai';
+import crypto from 'crypto';
 
 const openai = new OpenAI();
 
 const HONEYHIVE_API_KEY = process.env.HONEYHIVE_API_KEY;
-const HONEYHIVE_PROJECT = process.env.HONEYHIVE_PROJECT || 'ai-resume';
 
 if (!HONEYHIVE_API_KEY) {
   console.error('Missing HONEYHIVE_API_KEY environment variable');
   process.exit(1);
 }
 
+// Helper to handle streaming response
+async function handleStreamResponse(result: any): Promise<string> {
+  if (!result || typeof result[Symbol.asyncIterator] !== 'function') {
+    return 'No response';
+  }
+
+  let fullResponse = '';
+  for await (const event of result as AsyncIterable<any>) {
+    if (event.type === 'done' || event.type === 'complete') {
+      if (event.data?.content) return event.data.content;
+      if (event.content) return event.content;
+    }
+    const content = event.data?.content || event.content || event.delta || '';
+    if (content) fullResponse += content;
+  }
+  return fullResponse;
+}
+
 // Define the agent function to evaluate
 async function runAgent(input: { message: string }) {
-  const conversationId = `eval-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  const conversationId = `eval-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
   const runnerConfig = createRunnerConfig(conversationId);
   const runner = new Runner(runnerConfig);
   const daniel = createDanielAgent('eval-user');
@@ -35,30 +53,9 @@ async function runAgent(input: { message: string }) {
     return (result as any).finalOutput;
   }
   
-  // Handle streaming response if necessary, but for eval we likely want the final output
-  // If the runner returns a stream, we'd need to consume it.
-  // Based on agent-stream.ts, the runner might return an async iterable.
-  
-  if (result && typeof (result as any)[Symbol.asyncIterator] === 'function') {
-    let fullResponse = '';
-    for await (const event of result as unknown as AsyncIterable<any>) {
-      if (event.type === 'done' || event.type === 'complete') {
-         // Try to get content from event
-         if (event.data?.content) return event.data.content;
-         if (event.content) return event.content;
-      }
-      // Accumulate content if available in other events
-      const content = event.data?.content || event.content || event.delta || '';
-      if (content) fullResponse += content;
-    }
-    return fullResponse;
-  }
-
-  return 'No response';
+  return handleStreamResponse(result);
 }
 
-// Define the evaluation dataset
-// Define the evaluation dataset
 // --- Custom Evaluators ---
 
 const relevanceEvaluator = evaluator(async (output: string, input: { message: string }) => {
@@ -76,8 +73,8 @@ const relevanceEvaluator = evaluator(async (output: string, input: { message: st
     messages: [{ role: 'user', content: prompt }],
   });
 
-  const score = parseFloat(response.choices[0].message.content || '0');
-  return isNaN(score) ? 0 : score;
+  const score = Number.parseFloat(response.choices[0].message.content || '0');
+  return Number.isNaN(score) ? 0 : score;
 }, { name: 'Relevance', target: 'relevance' });
 
 const coherenceEvaluator = evaluator(async (output: string) => {
@@ -94,8 +91,8 @@ const coherenceEvaluator = evaluator(async (output: string) => {
     messages: [{ role: 'user', content: prompt }],
   });
 
-  const score = parseFloat(response.choices[0].message.content || '0');
-  return isNaN(score) ? 0 : score;
+  const score = Number.parseFloat(response.choices[0].message.content || '0');
+  return Number.isNaN(score) ? 0 : score;
 }, { name: 'Coherence', target: 'coherence' });
 
 // --- Dataset ---
