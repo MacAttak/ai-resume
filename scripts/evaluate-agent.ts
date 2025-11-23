@@ -52,14 +52,15 @@ async function runAgent(input: { message: string }) {
   if (result && (result as any).finalOutput) {
     return (result as any).finalOutput;
   }
-  
+
   return handleStreamResponse(result);
 }
 
 // --- Custom Evaluators ---
 
-const relevanceEvaluator = evaluator(async (output: string, input: { message: string }) => {
-  const prompt = `
+const relevanceEvaluator = evaluator(
+  async (output: string, input: { message: string }) => {
+    const prompt = `
     You are an AI evaluator. Rate the relevance of the following response to the user's message on a scale of 0 to 1.
     
     User Message: "${input.message}"
@@ -68,17 +69,20 @@ const relevanceEvaluator = evaluator(async (output: string, input: { message: st
     Return ONLY the numeric score (e.g., 0.9).
   `;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [{ role: 'user', content: prompt }],
-  });
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+    });
 
-  const score = Number.parseFloat(response.choices[0].message.content || '0');
-  return Number.isNaN(score) ? 0 : score;
-}, { name: 'Relevance', target: 'relevance' });
+    const score = Number.parseFloat(response.choices[0].message.content || '0');
+    return Number.isNaN(score) ? 0 : score;
+  },
+  { name: 'Relevance', target: 'relevance' }
+);
 
-const coherenceEvaluator = evaluator(async (output: string) => {
-  const prompt = `
+const coherenceEvaluator = evaluator(
+  async (output: string) => {
+    const prompt = `
     You are an AI evaluator. Rate the coherence and readability of the following response on a scale of 0 to 1.
     
     Response: "${output}"
@@ -86,37 +90,76 @@ const coherenceEvaluator = evaluator(async (output: string) => {
     Return ONLY the numeric score (e.g., 0.9).
   `;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [{ role: 'user', content: prompt }],
-  });
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+    });
 
-  const score = Number.parseFloat(response.choices[0].message.content || '0');
-  return Number.isNaN(score) ? 0 : score;
-}, { name: 'Coherence', target: 'coherence' });
+    const score = Number.parseFloat(response.choices[0].message.content || '0');
+    return Number.isNaN(score) ? 0 : score;
+  },
+  { name: 'Coherence', target: 'coherence' }
+);
 
 // --- Dataset ---
 
 const dataset = [
   {
     inputs: { message: 'Hello, who are you?' },
-    ground_truths: { expected_concepts: ['Daniel McCarthy', 'Data Platform Architect', 'AI Engineer', 'Sydney'] },
+    ground_truths: {
+      expected_concepts: [
+        'Daniel McCarthy',
+        'Data Platform Architect',
+        'AI Engineer',
+        'Sydney',
+      ],
+    },
   },
   {
     inputs: { message: 'What data platforms have you worked with?' },
-    ground_truths: { expected_concepts: ['Snowflake', 'Teradata', 'Azure Data Lake', 'Cloudera', 'AWS'] },
+    ground_truths: {
+      expected_concepts: [
+        'Snowflake',
+        'Teradata',
+        'Azure Data Lake',
+        'Cloudera',
+        'AWS',
+      ],
+    },
   },
   {
     inputs: { message: 'Tell me about your AI engineering experience' },
-    ground_truths: { expected_concepts: ['LangChain', 'LangGraph', 'OpenAI Agents SDK', 'RAG', 'Altus Feature Engineering Agent'] },
+    ground_truths: {
+      expected_concepts: [
+        'LangChain',
+        'LangGraph',
+        'OpenAI Agents SDK',
+        'RAG',
+        'Altus Feature Engineering Agent',
+      ],
+    },
   },
   {
     inputs: { message: "What's your leadership philosophy?" },
-    ground_truths: { expected_concepts: ['Hands-on leadership', 'Production-first mindset', 'Cross-functional collaboration', 'Culture transformation'] },
+    ground_truths: {
+      expected_concepts: [
+        'Hands-on leadership',
+        'Production-first mindset',
+        'Cross-functional collaboration',
+        'Culture transformation',
+      ],
+    },
   },
   {
     inputs: { message: 'I want to book a time to chat with the real Dan!' },
-    ground_truths: { expected_concepts: ['book a meeting', 'availability', 'get_user_details', 'check_meeting_availability'] },
+    ground_truths: {
+      expected_concepts: [
+        'book a meeting',
+        'availability',
+        'get_user_details',
+        'check_meeting_availability',
+      ],
+    },
   },
 ];
 
@@ -124,7 +167,7 @@ const dataset = [
 
 async function main() {
   console.log('Starting evaluation...');
-  
+
   try {
     const result = await evaluate({
       project: 'ai-resume',

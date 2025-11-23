@@ -27,6 +27,7 @@ git checkout -b feature/your-feature-name
 ```
 
 **Branch naming conventions:**
+
 - `feature/` - New features or enhancements
 - `fix/` - Bug fixes
 - `chore/` - Maintenance tasks, dependency updates
@@ -41,6 +42,7 @@ git checkout -b feature/your-feature-name
 - Update documentation if needed
 
 **Good commit messages:**
+
 ```
 feat: Add user profile avatar upload
 fix: Resolve race condition in booking availability
@@ -78,6 +80,7 @@ gh pr create --base main --title "feat: Your feature title"
 ```
 
 **PR Guidelines:**
+
 - Target `main` branch (not develop)
 - Provide clear description of changes
 - Link related issues
@@ -118,6 +121,7 @@ After approval and passing checks:
 - SonarCloud checks for code smells and security issues
 
 **Cognitive complexity limits:**
+
 - Functions should have complexity ≤ 15
 - Extract helper functions to reduce complexity
 - See PR #15 for examples of refactoring
@@ -182,16 +186,19 @@ git push origin v1.2.0
 Our automated workflows:
 
 ### On Pull Request
+
 - **Code Quality & Tests** - ESLint, TypeScript, Vitest
 - **Vercel Preview** - Deploy preview environment
 - **SonarCloud** - Code quality and security analysis
 
 ### On Merge to Main
+
 - **Vercel Production** - Deploy to production
 - **Auto-Sync** - Create PR to sync develop (temporary)
 - **Branch Cleanup** - Delete merged branch
 
 ### On PR Close
+
 - **Branch Cleanup** - Delete feature branch if merged
 
 ## Best Practices

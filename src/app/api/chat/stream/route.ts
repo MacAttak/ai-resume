@@ -10,7 +10,7 @@ export const maxDuration = 30; // 30 second timeout for agent processing
 
 export async function POST(req: NextRequest) {
   const tracer = trace.getTracer('ai-resume');
-  
+
   return tracer.startActiveSpan('chat.stream', async (span) => {
     try {
       // 1. Verify authentication
@@ -137,7 +137,9 @@ export async function POST(req: NextRequest) {
                     dayRemaining: rateLimitStatus.dayRemaining - 1,
                   },
                 });
-                controller.enqueue(encoder.encode(`data: ${completionData}\n\n`));
+                controller.enqueue(
+                  encoder.encode(`data: ${completionData}\n\n`)
+                );
                 controller.close();
                 span.end(); // End span on success
               } else if (event.type === 'error') {
@@ -158,7 +160,9 @@ export async function POST(req: NextRequest) {
             const errorData = JSON.stringify({
               type: 'error',
               error:
-                error instanceof Error ? error.message : 'Internal server error',
+                error instanceof Error
+                  ? error.message
+                  : 'Internal server error',
             });
             controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
             controller.close();
