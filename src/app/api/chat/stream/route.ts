@@ -4,12 +4,14 @@ import { runDanielAgentStream } from '@/lib/agent-stream';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getConversation, addMessage } from '@/lib/conversation';
 import { trace } from '@opentelemetry/api';
+import { getHoneyHiveTracer } from '@/instrumentation';
 
 export const runtime = 'nodejs'; // Agent SDK requires Node runtime
 export const maxDuration = 30; // 30 second timeout for agent processing
 
 export async function POST(req: NextRequest) {
   const tracer = trace.getTracer('ai-resume');
+  const honeyHive = getHoneyHiveTracer();
 
   return tracer.startActiveSpan('chat.stream', async (span) => {
     try {
@@ -25,6 +27,15 @@ export async function POST(req: NextRequest) {
         });
       }
       span.setAttribute('user.id', userId);
+
+      // Start HoneyHive session for this conversation
+      if (honeyHive) {
+        await honeyHive.startSession();
+        await honeyHive.enrichSession({
+          metadata: { userId, sessionName: `chat-${userId}-${Date.now()}` },
+          inputs: { userId },
+        });
+      }
 
       // 2. Check rate limits
       const rateLimitStatus = await checkRateLimit(userId);
@@ -83,6 +94,16 @@ export async function POST(req: NextRequest) {
           try {
             let fullResponse = '';
             let finalHistory: any[] = [];
+
+            // Track start of agent processing in HoneyHive
+            const startTime = Date.now();
+            if (honeyHive) {
+              honeyHive.enrichSpan({
+                eventName: 'agent.start',
+                inputs: { message, conversationLength: agentHistory.length },
+                metadata: { userId },
+              });
+            }
 
             // Stream agent response with deduplication
             let lastSentLength = 0;
@@ -147,6 +168,25 @@ export async function POST(req: NextRequest) {
                   },
                   updatedHistory
                 );
+
+                // Track completion in HoneyHive
+                const duration = Date.now() - startTime;
+                if (honeyHive) {
+                  honeyHive.enrichSpan({
+                    eventName: 'agent.complete',
+                    outputs: { response: finalContent },
+                    metrics: {
+                      duration_ms: duration,
+                      response_length: finalContent.length,
+                    },
+                    metadata: { userId, success: true },
+                  });
+                  await honeyHive.enrichSession({
+                    outputs: { finalResponse: finalContent },
+                    metrics: { total_duration_ms: duration },
+                  });
+                  await honeyHive.flush();
+                }
 
                 // Send completion event
                 const completionData = JSON.stringify({

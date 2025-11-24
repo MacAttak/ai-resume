@@ -1,20 +1,19 @@
-import { ImageResponse } from 'next/og';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
+/**
+ * Dynamic favicon generation using Next.js App Router icon file convention
+ *
+ * Creates a circular masked icon from the macattak.png profile image
+ */
 
-export const runtime = 'nodejs';
+import { ImageResponse } from 'next/og';
+
+// Use Node.js runtime (not edge) to avoid size limits
 export const size = {
-  width: 512,
-  height: 512,
+  width: 128,
+  height: 128,
 };
 export const contentType = 'image/png';
 
-export default async function Icon() {
-  const imagePath = join(process.cwd(), 'public', 'macattak.png');
-  const imageBuffer = await readFile(imagePath);
-  const base64Image = imageBuffer.toString('base64');
-  const imageSrc = `data:image/png;base64,${base64Image}`;
-
+export default function Icon() {
   return new ImageResponse(
     (
       <div
@@ -27,11 +26,12 @@ export default async function Icon() {
           background: 'transparent',
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={imageSrc}
+          src="https://chatwithdan.chat/macattak.png"
           alt="Icon"
-          width="512"
-          height="512"
+          width="128"
+          height="128"
           style={{
             borderRadius: '50%',
             objectFit: 'cover',

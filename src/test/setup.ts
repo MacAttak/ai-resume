@@ -38,6 +38,12 @@ vi.mock('@clerk/nextjs', () => ({
     children || null,
 }));
 
+// Mock HoneyHive instrumentation (prevents OpenTelemetry errors in tests)
+vi.mock('@/instrumentation', () => ({
+  getHoneyHiveTracer: () => null,
+  register: vi.fn(),
+}));
+
 // Mock environment variables
 process.env.OPENAI_API_KEY = 'test-openai-key';
 process.env.CLERK_SECRET_KEY = 'test-clerk-secret';

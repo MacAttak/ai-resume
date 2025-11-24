@@ -110,6 +110,43 @@ describe('Security Headers Configuration', () => {
       expect(csp).toBeDefined();
       expect(csp.value).toContain('https://vercel.live');
       expect(csp.value).toContain('https://va.vercel-scripts.com');
+      // Vercel Live needs frame-src for iframe embedding
+      expect(csp.value).toMatch(/frame-src[^;]*https:\/\/vercel\.live/);
+    });
+
+    it('should allow blob: URLs for images (favicon support)', () => {
+      expect(csp).toBeDefined();
+      expect(csp.value).toMatch(/img-src[^;]*blob:/);
+    });
+
+    it('should allow Clerk domains for all environments', () => {
+      expect(csp).toBeDefined();
+      // Production domain
+      expect(csp.value).toContain('https://clerk.chatwithdan.chat');
+      // Preview/dev domain wildcard
+      expect(csp.value).toContain('https://*.clerk.accounts.dev');
+      // Telemetry domain
+      expect(csp.value).toContain('https://clerk-telemetry.com');
+      // Verify in script-src, connect-src, and frame-src
+      expect(csp.value).toMatch(
+        /script-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
+      );
+      expect(csp.value).toMatch(
+        /connect-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
+      );
+      expect(csp.value).toMatch(
+        /connect-src[^;]*https:\/\/clerk-telemetry\.com/
+      );
+      expect(csp.value).toMatch(
+        /frame-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
+      );
+    });
+
+    it('should allow HoneyHive API for tracing and logging', () => {
+      expect(csp).toBeDefined();
+      expect(csp.value).toContain('https://api.honeyhive.ai');
+      // Verify in connect-src directive
+      expect(csp.value).toMatch(/connect-src[^;]*https:\/\/api\.honeyhive\.ai/);
     });
   });
 });
