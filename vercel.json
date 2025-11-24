@@ -21,7 +21,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.chatwithdan.chat https://*.clerk.accounts.dev https://va.vercel-scripts.com https://vercel.live https://app.cal.com https://cal.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://app.cal.com https://cal.com; img-src 'self' data: blob: https: https://img.clerk.com; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.cal.com https://clerk.chatwithdan.chat https://*.clerk.accounts.dev; frame-src https://challenges.cloudflare.com https://vercel.live https://app.cal.com https://cal.com https://*.clerk.accounts.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.chatwithdan.chat https://*.clerk.accounts.dev https://va.vercel-scripts.com https://vercel.live https://app.cal.com https://cal.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://app.cal.com https://cal.com; img-src 'self' data: blob: https: https://img.clerk.com; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.cal.com https://clerk.chatwithdan.chat https://*.clerk.accounts.dev https://clerk-telemetry.com; frame-src https://challenges.cloudflare.com https://vercel.live https://app.cal.com https://cal.com https://*.clerk.accounts.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     }

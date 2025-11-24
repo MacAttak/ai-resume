@@ -125,12 +125,17 @@ describe('Security Headers Configuration', () => {
       expect(csp.value).toContain('https://clerk.chatwithdan.chat');
       // Preview/dev domain wildcard
       expect(csp.value).toContain('https://*.clerk.accounts.dev');
+      // Telemetry domain
+      expect(csp.value).toContain('https://clerk-telemetry.com');
       // Verify in script-src, connect-src, and frame-src
       expect(csp.value).toMatch(
         /script-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
       );
       expect(csp.value).toMatch(
         /connect-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
+      );
+      expect(csp.value).toMatch(
+        /connect-src[^;]*https:\/\/clerk-telemetry\.com/
       );
       expect(csp.value).toMatch(
         /frame-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
