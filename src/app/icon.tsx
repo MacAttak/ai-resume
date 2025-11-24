@@ -6,7 +6,7 @@
 
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
+// Use Node.js runtime (not edge) to avoid size limits
 export const size = {
   width: 128,
   height: 128,
