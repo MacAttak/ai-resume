@@ -12,6 +12,7 @@ import {
   isAtLeast24HoursAway,
   getHoursUntil,
 } from './cal-client';
+import { logger } from './logger';
 
 const DEFAULT_TIMEZONE = 'Australia/Sydney';
 
@@ -164,7 +165,7 @@ function formatAvailableSlots(
   response += '\nWhich day and time works best for you?';
 
   // For debugging - include raw slot mapping
-  console.log('Formatted availability with UTC mapping:', {
+  logger.debug('Formatted availability with UTC mapping:', {
     formatted: formattedDays,
     slotsByLocalDate: Object.fromEntries(
       Object.entries(slotsByLocalDate).map(([date, times]) => [

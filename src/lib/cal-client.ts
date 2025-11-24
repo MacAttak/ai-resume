@@ -10,6 +10,7 @@ import type {
   CalBookingResponse,
   CalEventTypesResponse,
 } from './cal-types';
+import { logger } from './logger';
 
 const CAL_API_BASE = 'https://api.cal.com/v2';
 const CAL_API_VERSION = '2024-08-13';
@@ -98,7 +99,7 @@ async function parseApiError(response: Response, url: string): Promise<never> {
     }
   }
 
-  console.error('Cal.com API error:', {
+  logger.error('Cal.com API error:', {
     status: response.status,
     errorMessage,
     url,
@@ -158,7 +159,7 @@ async function calFetch<T>(
         // Progressive backoff: 2s, 4s, 8s (longer delays for connection issues)
         const backoffMs = Math.pow(2, attempt + 1) * 1000;
 
-        console.warn(
+        logger.warn(
           `Cal.com API request failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${backoffMs}ms...`,
           {
             error: error instanceof Error ? error.message : String(error),
@@ -174,7 +175,7 @@ async function calFetch<T>(
 
       // Non-retryable error or max retries exceeded
       if (attempt === MAX_RETRIES) {
-        console.error('Cal.com API request failed after all retries:', {
+        logger.error('Cal.com API request failed after all retries:', {
           attempts: MAX_RETRIES + 1,
           error: lastError?.message,
           url,

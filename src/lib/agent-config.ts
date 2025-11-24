@@ -2,7 +2,9 @@ import { fileSearchTool, Agent } from '@openai/agents';
 import { createCalendarTools } from './cal-tools';
 
 // Vector Store Configuration
-export const VECTOR_STORE_ID = 'vs_69179ff7c53c8191a1ac612610854ff7';
+// Pulled from environment variable for security (managed via Vercel Dashboard)
+export const VECTOR_STORE_ID =
+  process.env.OPENAI_VECTOR_STORE_ID || 'vs_69179ff7c53c8191a1ac612610854ff7';
 
 // Workflow Configuration
 export const WORKFLOW_NAME = 'AI Resume Assistant';

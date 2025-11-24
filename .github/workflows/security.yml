@@ -1,0 +1,110 @@
+name: Security Tests
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run weekly security checks on Mondays at 9am UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  security-tests:
+    name: Security Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security tests
+        run: npm run test -- src/test/security
+        env:
+          NODE_ENV: test
+
+      - name: Type check
+        run: npm run type-check
+
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for high/critical vulnerabilities
+        run: npm audit --audit-level=high
+
+  security-headers:
+    name: Validate Security Headers Config
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify vercel.json exists
+        run: test -f vercel.json
+
+      - name: Validate vercel.json structure
+        run: |
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+          jq -e '.headers[0].headers | map(select(.key == "Content-Security-Policy" or .key == "X-Frame-Options" or .key == "X-Content-Type-Options")) | length >= 3' vercel.json
+
+  env-security:
+    name: Environment Security Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for exposed secrets in code
+        run: |
+          # Check for accidentally committed .env files
+          if [ -f .env.local ] || [ -f .env ]; then
+            echo "ERROR: .env file found in repository!"
+            exit 1
+          fi
+
+          # Check for potential API keys in code (excluding .env.example)
+          if grep -r --exclude-dir=node_modules --exclude=.env.example --exclude-dir=.git -E "(sk-proj-[A-Za-z0-9]{20,}|sk_test_[A-Za-z0-9]{20,}|cal_live_[A-Za-z0-9]{20,})" .; then
+            echo "ERROR: Potential API key found in code!"
+            exit 1
+          fi
+
+          echo "No exposed secrets found"
+
+      - name: Verify .env.example exists
+        run: test -f .env.example
+
+      - name: Verify .gitignore includes .env files
+        run: |
+          if ! grep -q ".env" .gitignore; then
+            echo "ERROR: .gitignore missing .env patterns!"
+            exit 1
+          fi
+          echo ".env files properly ignored"

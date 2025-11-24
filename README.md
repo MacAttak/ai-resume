@@ -78,29 +78,54 @@ Clerk Auth + Upstash Redis              Cal.com API v2
 
 ## Quick Start
 
-### 1. Install Dependencies
+### Prerequisites
+
+- Node.js ≥20.0.0
+- npm ≥10.0.0
+- Vercel CLI (for environment variable management)
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/MacAttak/ai-resume.git
+cd ai-resume
+```
+
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Setup Environment Variables
-
-Copy `.env.example` to `.env.local` and fill in your values:
+### 3. Install Vercel CLI
 
 ```bash
-cp .env.example .env.local
+npm install -g vercel
 ```
 
-You'll need:
+### 4. Link to Vercel Project
 
-- OpenAI API key and project ID
-- Clerk publishable and secret keys
-- Upstash Redis URL and token
-- Vercel KV credentials (auto-added when deploying)
-- Cal.com API key and event type IDs (for meeting booking)
+```bash
+vercel link
+```
 
-### 3. Run Development Server
+Follow the prompts to link to your Vercel project.
+
+### 5. Pull Environment Variables
+
+```bash
+npm run env:pull
+```
+
+This command pulls environment variables from Vercel and creates a `.env.local` file. All secrets are managed securely through the Vercel Dashboard and pulled locally for development.
+
+**Important:**
+
+- Never commit `.env.local` files to git
+- Use `.env.example` as a reference for required variables
+- See [SECURITY.md](SECURITY.md) for secrets management best practices
+
+### 6. Run Development Server
 
 ```bash
 npm run dev
@@ -108,12 +133,36 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+## Environment Variable Management
+
+### Using Vercel as Secrets Manager
+
+All environment variables are managed through the Vercel Dashboard for security and team collaboration.
+
+**Pull latest variables:**
+
+```bash
+npm run env:pull                    # Development environment
+npm run env:pull:preview            # Preview environment
+npm run env:pull:production         # Production environment
+```
+
+**Add new variable:**
+
+1. Add to Vercel Dashboard → Project Settings → Environment Variables
+2. Select appropriate environments (Development, Preview, Production)
+3. Mark as "Sensitive" for API keys/secrets
+4. Pull locally: `npm run env:pull`
+
+See [SECURITY.md](SECURITY.md) for complete secrets management documentation.
+
 ## Environment Variables
 
 | Variable                            | Description                                         | Required |
 | ----------------------------------- | --------------------------------------------------- | -------- |
 | `OPENAI_API_KEY`                    | OpenAI API key for AgentSDK                         | Yes      |
 | `OPENAI_PROJECT_ID`                 | OpenAI project ID (optional, for project resources) | No       |
+| `OPENAI_VECTOR_STORE_ID`            | OpenAI Vector Store ID for file search              | Yes      |
 | `PRODUCTION_MODEL`                  | Production model override (default: gpt-5.1)        | No       |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                               | Yes      |
 | `CLERK_SECRET_KEY`                  | Clerk secret key                                    | Yes      |
