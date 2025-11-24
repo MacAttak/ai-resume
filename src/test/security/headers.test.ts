@@ -141,5 +141,12 @@ describe('Security Headers Configuration', () => {
         /frame-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
       );
     });
+
+    it('should allow HoneyHive API for tracing and logging', () => {
+      expect(csp).toBeDefined();
+      expect(csp.value).toContain('https://api.honeyhive.ai');
+      // Verify in connect-src directive
+      expect(csp.value).toMatch(/connect-src[^;]*https:\/\/api\.honeyhive\.ai/);
+    });
   });
 });

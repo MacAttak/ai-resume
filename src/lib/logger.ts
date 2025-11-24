@@ -4,7 +4,12 @@
  * Automatically redacts sensitive information from logs to ensure
  * compliance with privacy regulations (GDPR, CCPA) and prevent
  * accidental exposure of personally identifiable information.
+ *
+ * Logs are sent to both console and HoneyHive (if configured) for
+ * centralized observability and analysis.
  */
+
+import { getHoneyHiveTracer } from '@/instrumentation';
 
 const SENSITIVE_FIELDS = [
   'email',
@@ -71,6 +76,36 @@ export function sanitizeLogData(data: any): any {
 }
 
 /**
+ * Send log event to HoneyHive for centralized observability
+ */
+async function sendToHoneyHive(
+  level: 'info' | 'warn' | 'error' | 'debug',
+  message: string,
+  data?: any
+) {
+  try {
+    const tracer = getHoneyHiveTracer();
+    if (!tracer) {
+      return; // HoneyHive not configured
+    }
+
+    // Create a log event
+    await tracer.enrichEvent({
+      eventName: `log.${level}`,
+      metadata: {
+        level,
+        message,
+        timestamp: new Date().toISOString(),
+        ...(data && { data: sanitizeLogData(data) }),
+      },
+    });
+  } catch (error) {
+    // Silently fail - don't break logging if HoneyHive is down
+    console.error('[HoneyHive] Failed to send log:', error);
+  }
+}
+
+/**
  * Secure logger that automatically sanitizes PII before logging
  */
 export const logger = {
@@ -83,6 +118,8 @@ export const logger = {
     } else {
       console.log(message);
     }
+    // Send to HoneyHive asynchronously (don't await to avoid blocking)
+    sendToHoneyHive('info', message, data).catch(() => {});
   },
 
   /**
@@ -90,17 +127,24 @@ export const logger = {
    * Note: Error stack traces are preserved for debugging
    */
   error: (message: string, error?: any) => {
+    const sanitizedError =
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : sanitizeLogData(error);
+
     if (error instanceof Error) {
-      console.error(message, {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      });
+      console.error(message, sanitizedError);
     } else if (error !== undefined) {
-      console.error(message, sanitizeLogData(error));
+      console.error(message, sanitizedError);
     } else {
       console.error(message);
     }
+    // Send to HoneyHive asynchronously
+    sendToHoneyHive('error', message, sanitizedError).catch(() => {});
   },
 
   /**
@@ -112,6 +156,8 @@ export const logger = {
     } else {
       console.warn(message);
     }
+    // Send to HoneyHive asynchronously
+    sendToHoneyHive('warn', message, data).catch(() => {});
   },
 
   /**
@@ -125,6 +171,8 @@ export const logger = {
       } else {
         console.debug(message);
       }
+      // Send to HoneyHive in development too
+      sendToHoneyHive('debug', message, data).catch(() => {});
     }
   },
 };
