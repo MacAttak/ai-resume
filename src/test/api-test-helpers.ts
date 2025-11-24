@@ -46,3 +46,36 @@ export const setupConversationMock = (
 ) => {
   vi.mocked(getConversation).mockResolvedValue(state as any);
 };
+
+export const setupAddMessageMock = (addMessage: any) => {
+  vi.mocked(addMessage).mockResolvedValue({
+    messages: [],
+    agentHistory: [],
+  } as any);
+};
+
+export const setupStreamMock = (
+  runDanielAgentStream: any,
+  events: Array<{ type: 'content' | 'done' | 'complete' | 'error'; content?: string; error?: string }>
+) => {
+  const mockStream = (async function* () {
+    for (const event of events) {
+      yield event as any;
+    }
+  })();
+  vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+};
+
+export const setupAuthenticatedRequest = (
+  auth: any,
+  checkRateLimit: any,
+  getConversation: any,
+  options?: {
+    rateLimitAllowed?: boolean;
+    conversationState?: any;
+  }
+) => {
+  setupAuthMock(auth);
+  setupRateLimitMock(checkRateLimit, { allowed: options?.rateLimitAllowed ?? true });
+  setupConversationMock(getConversation, options?.conversationState ?? null);
+};

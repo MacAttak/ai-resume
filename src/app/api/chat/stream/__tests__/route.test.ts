@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { NextRequest } from 'next/server';
+import {
+  setupAuthMock,
+  setupRateLimitMock,
+  setupConversationMock,
+  setupAddMessageMock,
+  setupStreamMock,
+  setupAuthenticatedRequest,
+} from '@/test/api-test-helpers';
 
 // Mock modules
 vi.mock('@clerk/nextjs/server', () => ({
@@ -86,16 +94,14 @@ describe('POST /api/chat/stream', () => {
 
   describe('Rate Limiting', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      setupAuthMock(auth);
     });
 
     it('returns 429 when rate limit is exceeded', async () => {
-      vi.mocked(checkRateLimit).mockResolvedValue({
+      setupRateLimitMock(checkRateLimit, {
         allowed: false,
         minuteRemaining: 0,
         dayRemaining: 5,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
       });
 
       const request = createMockRequest({ message: 'Hello' });
@@ -109,26 +115,12 @@ describe('POST /api/chat/stream', () => {
     });
 
     it('proceeds when rate limit is not exceeded', async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
-      vi.mocked(getConversation).mockResolvedValue(null);
-
-      // Mock empty stream
-      const mockStream = (async function* () {
-        yield { type: 'done' as const };
-      })();
-      vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+      setupAuthenticatedRequest(auth, checkRateLimit, getConversation);
+      setupStreamMock(runDanielAgentStream, [{ type: 'done' }]);
 
       const request = createMockRequest({ message: 'Hello' });
       const response = await POST(request);
 
-      // Should get streaming response
       expect(response.status).toBe(200);
       expect(response.headers.get('Content-Type')).toBe('text/event-stream');
     });
@@ -136,14 +128,8 @@ describe('POST /api/chat/stream', () => {
 
   describe('Input Validation', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupAuthMock(auth);
+      setupRateLimitMock(checkRateLimit);
     });
 
     it('returns 400 when message is missing', async () => {
@@ -176,28 +162,16 @@ describe('POST /api/chat/stream', () => {
 
   describe('Streaming Response', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
-      vi.mocked(getConversation).mockResolvedValue(null);
-      vi.mocked(addMessage).mockResolvedValue({
-        messages: [],
-        agentHistory: [],
-      } as any);
+      setupAuthenticatedRequest(auth, checkRateLimit, getConversation);
+      setupAddMessageMock(addMessage);
     });
 
     it('streams content from agent', async () => {
-      const mockStream = (async function* () {
-        yield { type: 'content' as const, content: 'Hello' };
-        yield { type: 'content' as const, content: ' World' };
-        yield { type: 'done' as const };
-      })();
-      vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+      setupStreamMock(runDanielAgentStream, [
+        { type: 'content', content: 'Hello' },
+        { type: 'content', content: ' World' },
+        { type: 'done' },
+      ]);
 
       const request = createMockRequest({ message: 'Test message' });
       const response = await POST(request);
@@ -223,11 +197,10 @@ describe('POST /api/chat/stream', () => {
     });
 
     it('saves conversation history after streaming', async () => {
-      const mockStream = (async function* () {
-        yield { type: 'content' as const, content: 'Test response' };
-        yield { type: 'done' as const };
-      })();
-      vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+      setupStreamMock(runDanielAgentStream, [
+        { type: 'content', content: 'Test response' },
+        { type: 'done' },
+      ]);
 
       const request = createMockRequest({ message: 'Test message' });
       await POST(request);
@@ -255,10 +228,9 @@ describe('POST /api/chat/stream', () => {
     });
 
     it('handles errors in agent stream', async () => {
-      const mockStream = (async function* () {
-        yield { type: 'error' as const, error: 'Agent error occurred' };
-      })();
-      vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+      setupStreamMock(runDanielAgentStream, [
+        { type: 'error', error: 'Agent error occurred' },
+      ]);
 
       const request = createMockRequest({ message: 'Test message' });
       const response = await POST(request);
@@ -278,19 +250,11 @@ describe('POST /api/chat/stream', () => {
     });
 
     it('includes usage stats in completion event', async () => {
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 5,
-        dayRemaining: 50,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
-
-      const mockStream = (async function* () {
-        yield { type: 'content' as const, content: 'Response' };
-        yield { type: 'done' as const };
-      })();
-      vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+      setupRateLimitMock(checkRateLimit, { minuteRemaining: 5, dayRemaining: 50 });
+      setupStreamMock(runDanielAgentStream, [
+        { type: 'content', content: 'Response' },
+        { type: 'done' },
+      ]);
 
       const request = createMockRequest({ message: 'Test' });
       const response = await POST(request);
@@ -312,18 +276,9 @@ describe('POST /api/chat/stream', () => {
 
   describe('Conversation History', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
-      vi.mocked(addMessage).mockResolvedValue({
-        messages: [],
-        agentHistory: [],
-      } as any);
+      setupAuthMock(auth);
+      setupRateLimitMock(checkRateLimit);
+      setupAddMessageMock(addMessage);
     });
 
     it('uses existing conversation history', async () => {
@@ -343,10 +298,7 @@ describe('POST /api/chat/stream', () => {
         agentHistory: existingHistory,
       } as any);
 
-      const mockStream = (async function* () {
-        yield { type: 'done' as const };
-      })();
-      vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+      setupStreamMock(runDanielAgentStream, [{ type: 'done' }]);
 
       const request = createMockRequest({ message: 'New message' });
       await POST(request);
@@ -361,10 +313,7 @@ describe('POST /api/chat/stream', () => {
     it('handles missing conversation history', async () => {
       vi.mocked(getConversation).mockResolvedValue(null);
 
-      const mockStream = (async function* () {
-        yield { type: 'done' as const };
-      })();
-      vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
+      setupStreamMock(runDanielAgentStream, [{ type: 'done' }]);
 
       const request = createMockRequest({ message: 'First message' });
       await POST(request);
@@ -379,15 +328,7 @@ describe('POST /api/chat/stream', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
-      vi.mocked(getConversation).mockResolvedValue(null);
+      setupAuthenticatedRequest(auth, checkRateLimit, getConversation);
     });
 
     it('handles errors during stream processing', async () => {
