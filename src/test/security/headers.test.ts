@@ -118,5 +118,23 @@ describe('Security Headers Configuration', () => {
       expect(csp).toBeDefined();
       expect(csp.value).toMatch(/img-src[^;]*blob:/);
     });
+
+    it('should allow Clerk domains for all environments', () => {
+      expect(csp).toBeDefined();
+      // Production domain
+      expect(csp.value).toContain('https://clerk.chatwithdan.chat');
+      // Preview/dev domain wildcard
+      expect(csp.value).toContain('https://*.clerk.accounts.dev');
+      // Verify in script-src, connect-src, and frame-src
+      expect(csp.value).toMatch(
+        /script-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
+      );
+      expect(csp.value).toMatch(
+        /connect-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
+      );
+      expect(csp.value).toMatch(
+        /frame-src[^;]*https:\/\/\*\.clerk\.accounts\.dev/
+      );
+    });
   });
 });
