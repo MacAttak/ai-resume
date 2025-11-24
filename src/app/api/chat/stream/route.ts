@@ -53,11 +53,30 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // 4. Get conversation history
+      // 4. Validate message length
+      const MAX_MESSAGE_LENGTH = 4000;
+      if (message.length > MAX_MESSAGE_LENGTH) {
+        span.recordException(
+          new Error(`Message too long: ${message.length} chars`)
+        );
+        span.setStatus({ code: 2 });
+        span.end();
+        return new Response(
+          JSON.stringify({
+            error: `Message too long. Maximum ${MAX_MESSAGE_LENGTH} characters allowed.`,
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      // 5. Get conversation history
       const conversation = await getConversation(userId);
       const agentHistory = conversation?.agentHistory || [];
 
-      // 5. Create streaming response
+      // 6. Create streaming response
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {

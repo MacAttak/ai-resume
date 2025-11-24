@@ -6,6 +6,7 @@
 import { NextRequest } from 'next/server';
 import crypto from 'node:crypto';
 import type { CalWebhookPayload } from '@/lib/cal-types';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -33,23 +34,23 @@ function verifyWebhookSignature(
 async function handleWebhookEvent(payload: CalWebhookPayload): Promise<void> {
   const { triggerEvent, payload: eventPayload } = payload;
 
-  console.log('Cal.com webhook received:', {
+  logger.info('Cal.com webhook received:', {
     event: triggerEvent,
     bookingId: eventPayload.booking.id,
     bookingUid: eventPayload.booking.uid,
-    attendeeEmail: eventPayload.attendees[0]?.email,
+    attendeeEmail: eventPayload.attendees[0]?.email, // Will be sanitized
     startTime: eventPayload.booking.start,
   });
 
   switch (triggerEvent) {
     case 'BOOKING_CREATED':
       // Log successful booking
-      console.log('New booking created:', {
+      logger.info('New booking created:', {
         id: eventPayload.booking.id,
         uid: eventPayload.booking.uid,
         title: eventPayload.booking.title,
         start: eventPayload.booking.start,
-        attendees: eventPayload.attendees.map((a) => a.email),
+        attendees: eventPayload.attendees.map((a) => a.email), // Will be sanitized
         metadata: eventPayload.metadata,
       });
 
@@ -57,7 +58,7 @@ async function handleWebhookEvent(payload: CalWebhookPayload): Promise<void> {
       break;
 
     case 'BOOKING_RESCHEDULED':
-      console.log('Booking rescheduled:', {
+      logger.info('Booking rescheduled:', {
         id: eventPayload.booking.id,
         uid: eventPayload.booking.uid,
         newStart: eventPayload.booking.start,
@@ -65,7 +66,7 @@ async function handleWebhookEvent(payload: CalWebhookPayload): Promise<void> {
       break;
 
     case 'BOOKING_CANCELLED':
-      console.log('Booking cancelled:', {
+      logger.info('Booking cancelled:', {
         id: eventPayload.booking.id,
         uid: eventPayload.booking.uid,
       });
@@ -74,13 +75,13 @@ async function handleWebhookEvent(payload: CalWebhookPayload): Promise<void> {
     case 'BOOKING_PAYMENT_INITIATED':
     case 'BOOKING_PAID':
       // Handle payment events if needed
-      console.log(`Payment event: ${triggerEvent}`, {
+      logger.info(`Payment event: ${triggerEvent}`, {
         id: eventPayload.booking.id,
       });
       break;
 
     default:
-      console.log('Unknown webhook event:', triggerEvent);
+      logger.warn('Unknown webhook event:', triggerEvent);
   }
 }
 
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     // Get webhook secret
     const webhookSecret = process.env.CAL_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      console.error('CAL_WEBHOOK_SECRET is not configured');
+      logger.error('CAL_WEBHOOK_SECRET is not configured');
       return new Response(
         JSON.stringify({ error: 'Webhook secret not configured' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     // Verify signature
     if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-      console.error('Invalid webhook signature');
+      logger.error('Invalid webhook signature');
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
@@ -125,7 +126,7 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Webhook handler error:', error);
+    logger.error('Webhook handler error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
