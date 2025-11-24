@@ -95,4 +95,71 @@ describe('Security Headers Configuration', () => {
     expect(referrerPolicy).toBeDefined();
     expect(referrerPolicy.value).toBe('strict-origin-when-cross-origin');
   });
+
+  describe('CSP Third-Party Integration Support', () => {
+    it('should allow Clerk worker-src for web workers', () => {
+      const vercelConfigPath = path.join(process.cwd(), 'vercel.json');
+      const vercelConfig = JSON.parse(
+        fs.readFileSync(vercelConfigPath, 'utf-8')
+      );
+
+      const csp = vercelConfig.headers[0].headers.find(
+        (h: any) => h.key === 'Content-Security-Policy'
+      );
+
+      expect(csp).toBeDefined();
+      expect(csp.value).toContain("worker-src 'self' blob:");
+    });
+
+    it('should allow Cal.com scripts and frames', () => {
+      const vercelConfigPath = path.join(process.cwd(), 'vercel.json');
+      const vercelConfig = JSON.parse(
+        fs.readFileSync(vercelConfigPath, 'utf-8')
+      );
+
+      const csp = vercelConfig.headers[0].headers.find(
+        (h: any) => h.key === 'Content-Security-Policy'
+      );
+
+      expect(csp).toBeDefined();
+      // Cal.com in script-src
+      expect(csp.value).toContain('https://app.cal.com');
+      expect(csp.value).toContain('https://cal.com');
+      // Cal.com in frame-src
+      expect(csp.value).toContain('frame-src');
+      expect(csp.value).toContain('https://app.cal.com');
+    });
+
+    it('should allow Clerk images and Cloudflare challenges', () => {
+      const vercelConfigPath = path.join(process.cwd(), 'vercel.json');
+      const vercelConfig = JSON.parse(
+        fs.readFileSync(vercelConfigPath, 'utf-8')
+      );
+
+      const csp = vercelConfig.headers[0].headers.find(
+        (h: any) => h.key === 'Content-Security-Policy'
+      );
+
+      expect(csp).toBeDefined();
+      // Clerk images
+      expect(csp.value).toContain('https://img.clerk.com');
+      // Cloudflare challenge frames for Clerk bot protection
+      expect(csp.value).toContain('https://challenges.cloudflare.com');
+    });
+
+    it('should allow Vercel tooling in development/preview', () => {
+      const vercelConfigPath = path.join(process.cwd(), 'vercel.json');
+      const vercelConfig = JSON.parse(
+        fs.readFileSync(vercelConfigPath, 'utf-8')
+      );
+
+      const csp = vercelConfig.headers[0].headers.find(
+        (h: any) => h.key === 'Content-Security-Policy'
+      );
+
+      expect(csp).toBeDefined();
+      expect(csp.value).toContain('https://vercel.live');
+      expect(csp.value).toContain('https://va.vercel-scripts.com');
+    });
+  });
 });
