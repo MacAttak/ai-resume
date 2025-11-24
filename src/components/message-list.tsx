@@ -183,8 +183,8 @@ export function MessageList({
 
         {isLoading &&
           (!messages.length ||
-            messages[messages.length - 1].role !== 'assistant' ||
-            !messages[messages.length - 1].content) && (
+            messages.at(-1)?.role !== 'assistant' ||
+            !messages.at(-1)?.content) && (
             <div className="flex gap-3">
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">

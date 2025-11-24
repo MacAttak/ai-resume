@@ -42,8 +42,8 @@ describe('GET /api/conversation', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const response = await GET();
@@ -63,8 +63,8 @@ describe('GET /api/conversation', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const response = await GET();
@@ -76,20 +76,20 @@ describe('GET /api/conversation', () => {
 
     it('returns existing conversation messages', async () => {
       const mockMessages = [
-        { role: 'user', content: 'Hello', timestamp: new Date() },
-        { role: 'assistant', content: 'Hi there!', timestamp: new Date() },
+        { role: 'user' as const, content: 'Hello', timestamp: new Date() },
+        { role: 'assistant' as const, content: 'Hi there!', timestamp: new Date() },
       ];
 
       vi.mocked(getConversation).mockResolvedValue({
         messages: mockMessages,
         agentHistory: [],
-      });
+      } as any);
       vi.mocked(checkRateLimit).mockResolvedValue({
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const response = await GET();
@@ -106,8 +106,8 @@ describe('GET /api/conversation', () => {
         allowed: true,
         minuteRemaining: 5,
         dayRemaining: 50,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const response = await GET();
@@ -133,8 +133,8 @@ describe('GET /api/conversation', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const response = await GET();

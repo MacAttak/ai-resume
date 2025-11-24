@@ -72,6 +72,8 @@ describe('POST /api/chat/stream', () => {
         allowed: false,
         minuteRemaining: 0,
         dayRemaining: 0,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const request = createMockRequest({ message: 'Hello' });
@@ -92,6 +94,8 @@ describe('POST /api/chat/stream', () => {
         allowed: false,
         minuteRemaining: 0,
         dayRemaining: 5,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const request = createMockRequest({ message: 'Hello' });
@@ -110,6 +114,8 @@ describe('POST /api/chat/stream', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
       vi.mocked(getConversation).mockResolvedValue(null);
 
@@ -135,6 +141,8 @@ describe('POST /api/chat/stream', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
     });
 
@@ -173,12 +181,14 @@ describe('POST /api/chat/stream', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
-      vi.mocked(getConversation).mockResolvedValue({
+      vi.mocked(getConversation).mockResolvedValue(null);
+      vi.mocked(addMessage).mockResolvedValue({
         messages: [],
         agentHistory: [],
-      });
-      vi.mocked(addMessage).mockResolvedValue(undefined);
+      } as any);
     });
 
     it('streams content from agent', async () => {
@@ -272,6 +282,8 @@ describe('POST /api/chat/stream', () => {
         allowed: true,
         minuteRemaining: 5,
         dayRemaining: 50,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const mockStream = (async function* () {
@@ -305,8 +317,13 @@ describe('POST /api/chat/stream', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
-      vi.mocked(addMessage).mockResolvedValue(undefined);
+      vi.mocked(addMessage).mockResolvedValue({
+        messages: [],
+        agentHistory: [],
+      } as any);
     });
 
     it('uses existing conversation history', async () => {
@@ -318,7 +335,7 @@ describe('POST /api/chat/stream', () => {
       vi.mocked(getConversation).mockResolvedValue({
         messages: [],
         agentHistory: existingHistory,
-      });
+      } as any);
 
       const mockStream = (async function* () {
         yield { type: 'done' as const };
@@ -361,12 +378,15 @@ describe('POST /api/chat/stream', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
       vi.mocked(getConversation).mockResolvedValue(null);
     });
 
     it('handles errors during stream processing', async () => {
       const mockStream = (async function* () {
+        yield { type: 'content' as const, content: 'Starting...' };
         throw new Error('Stream processing error');
       })();
       vi.mocked(runDanielAgentStream).mockReturnValue(mockStream);
@@ -392,7 +412,7 @@ describe('POST /api/chat/stream', () => {
         json: async () => {
           throw new Error('Invalid JSON');
         },
-      } as NextRequest;
+      } as unknown as NextRequest;
 
       const response = await POST(request);
 

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Info, Github, BookOpen, Cpu, Shield, Zap, Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function AboutModal({ children }: { children?: React.ReactNode }) {
+export function AboutModal({ children }: { readonly children?: React.ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>

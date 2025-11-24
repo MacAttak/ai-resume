@@ -41,8 +41,8 @@ describe('GET /api/usage', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
       vi.mocked(getConversation).mockResolvedValue(null);
 
@@ -58,8 +58,8 @@ describe('GET /api/usage', () => {
     });
 
     it('returns rate limit information', async () => {
-      const resetMinute = Date.now() + 60000;
-      const resetDay = Date.now() + 86400000;
+      const resetMinute = new Date(Date.now() + 60000);
+      const resetDay = new Date(Date.now() + 86400000);
 
       vi.mocked(checkRateLimit).mockResolvedValue({
         allowed: true,
@@ -84,20 +84,20 @@ describe('GET /api/usage', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
 
       const mockMessages = [
-        { role: 'user', content: 'Message 1', timestamp: new Date() },
-        { role: 'assistant', content: 'Response 1', timestamp: new Date() },
-        { role: 'user', content: 'Message 2', timestamp: new Date() },
+        { role: 'user' as const, content: 'Message 1', timestamp: new Date() },
+        { role: 'assistant' as const, content: 'Response 1', timestamp: new Date() },
+        { role: 'user' as const, content: 'Message 2', timestamp: new Date() },
       ];
 
       vi.mocked(getConversation).mockResolvedValue({
         messages: mockMessages,
         agentHistory: [],
-      });
+      } as any);
 
       const response = await GET();
       const data = await response.json();
@@ -110,8 +110,8 @@ describe('GET /api/usage', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
       vi.mocked(getConversation).mockResolvedValue(null);
 
@@ -127,8 +127,8 @@ describe('GET /api/usage', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
       vi.mocked(getConversation).mockResolvedValue(null);
 
@@ -157,8 +157,8 @@ describe('GET /api/usage', () => {
         allowed: true,
         minuteRemaining: 10,
         dayRemaining: 100,
-        resetMinute: Date.now() + 60000,
-        resetDay: Date.now() + 86400000,
+        resetMinute: new Date(Date.now() + 60000),
+        resetDay: new Date(Date.now() + 86400000),
       });
       vi.mocked(getConversation).mockRejectedValue(new Error('Database error'));
 
