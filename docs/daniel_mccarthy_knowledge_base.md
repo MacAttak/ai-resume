@@ -110,6 +110,10 @@ Daniel's career evolution reflects a strategic shift from pure data science towa
 
 ### 2.5 Leadership & Team Building
 
+#### Collaborative Technical Leadership
+
+Brings technical vision while acknowledging that amazing results come from amazing teams. Leads architects and engineers by getting into the details when challenges arise - no one can anticipate every edge case. Rolls up sleeves to work through tough problems alongside specialists, combining strategic direction with hands-on technical engagement.
+
 #### Team Management
 
 - Leading large cross-functional teams (AI Engineers, Data Engineers, Platform Engineers)
@@ -285,25 +289,37 @@ Daniel's career evolution reflects a strategic shift from pure data science towa
 
 ### 4.2 Data Platform Modernisation
 
+#### AWS Streaming Platform (CBA)
+
+**Technology Stack:** AWS Flink, EMR, S3, unified batch/streaming architecture
+**Leadership Role:** Technical owner leading platform teams
+**Key Achievements:**
+
+- Led consolidation of Batch and Near Real-Time frameworks under unified architecture
+- Worked with data engineers to implement AWS Flink for enterprise streaming
+- Brought teams together around modern streaming patterns
+- Platform supports production ML/AI workloads at scale
+- Enables real-time data processing for fraud detection and transaction embeddings
+
 #### Azure Data Lakehouse (Westpac)
 
-**Scale:** 500+ users, 4PB data reduction  
+**Scale:** 500+ users, 4PB data reduction
 **Key Deliverables:**
 
-- Greenfield platform from concept to production
-- Architecture, governance, and operations framework
-- Self-service analytics capabilities
-- $5M annual cost savings
+- Led teams delivering greenfield platform from concept to production
+- Architecture, governance, and operations framework developed collaboratively
+- Self-service analytics capabilities for 1000+ users
+- Guided platform teams to $5M annual cost savings
 
 #### Snowflake Migration (CBA)
 
-**Current Initiative:** Enterprise-wide Teradata to Snowflake migration  
+**Current Initiative:** Enterprise-wide Teradata to Snowflake migration
 **Technical Leadership:**
 
-- Platform architecture design
-- Migration pattern development
-- Performance optimisation
-- Unified batch and streaming frameworks
+- Leading architectural teams on platform design
+- Migration pattern development with data engineers
+- Performance optimisation through collaborative problem-solving
+- Unified batch and streaming frameworks integration
 
 ### 4.3 MLOps & Feature Engineering
 
@@ -453,14 +469,14 @@ Daniel's career evolution reflects a strategic shift from pure data science towa
 
 ### 8.1 Technical Leadership Principles
 
-**Hands-On Leadership**
-Daniel believes in leading by example, maintaining deep technical skills while managing teams. He actively codes, architects solutions, and participates in technical reviews while providing strategic direction.
+**Collaborative Hands-On Leadership**
+Daniel brings teams of architects and engineers together around a technical vision, then rolls up his sleeves to work through challenges alongside them. He maintains deep technical skills while leading teams, actively participating in design reviews and getting into implementation details when edge cases arise. Believes the best results come from combining strategic direction with collaborative problem-solving.
 
 **Production-First Mindset**
-Frustrated by projects that end as presentations, Daniel focuses on delivering production systems. Every initiative must have a clear path to production with measurable business impact.
+Frustrated by projects that end as presentations, Daniel focuses on leading teams to deliver production systems. Every initiative must have a clear path to production with measurable business impact, achieved through collaborative engineering excellence.
 
 **Innovation Through Pragmatism**
-Balances cutting-edge innovation with practical implementation. Chooses proven technologies and managed services where appropriate while pushing boundaries in AI and ML capabilities.
+Balances cutting-edge innovation with practical implementation. Works with teams to choose proven technologies and managed services where appropriate while pushing boundaries in AI and ML capabilities. Recognizes that diverse technical expertise drives the best outcomes.
 
 ### 8.2 Team Building Approach
 
@@ -510,45 +526,52 @@ Actively upskills teams in emerging technologies. Led Python/R adoption at Westp
 **Spark Query Optimisation (Westpac)**
 
 - **Challenge:** Batch processing taking 12 hours
-- **Solution:** Query optimisation and partition strategy redesign
-- **Result:** Reduced processing time to 20 minutes
+- **Approach:** Led engineering teams in query optimisation and partition strategy redesign
+- **Result:** Worked with Spark engineers to reduce processing time to 20 minutes (36x improvement)
 - **Technologies:** Apache Spark, SQL optimisation
 
 **Data Retention Automation (Westpac)**
 
-- **Implementation:** Automated policies in data lake environment
-- **Scale:** 4PB storage reduction
-- **Impact:** $5M annual cost savings
+- **Implementation:** Guided teams implementing automated policies in data lake environment
+- **Scale:** 4PB storage reduction through collaborative effort
+- **Impact:** Led platform teams to $5M annual cost savings
 - **Governance:** Improved data lifecycle management
 
 **ELT Framework Development**
 
 - **Technologies:** Python, Spark, dbt, Flink
-- **Architecture:** Medallion architecture implementation
-- **Scale:** Enterprise-wide adoption
+- **Architecture:** Led teams implementing medallion architecture
+- **Scale:** Enterprise-wide adoption through cross-functional collaboration
 - **Benefits:** Standardised data processing patterns
 
 ### 9.3 Platform Engineering Projects
+
+**AWS Streaming Platform (CBA)**
+
+- **Technology:** AWS Flink, EMR, S3, unified batch/streaming architecture
+- **Leadership:** Technical owner leading platform teams
+- **Achievement:** Led consolidation of Batch and Near Real-Time frameworks
+- **Impact:** Brought data engineers together around modern streaming patterns
+
+**Azure Data Platform (Westpac)**
+
+- **Journey:** Led teams on Cloudera to Azure migration
+- **Components:** Lakehouse architecture, self-service analytics
+- **Scale:** 1000+ users, 24/7 operations
+- **Savings:** Guided platform teams to $5M annually through collaborative optimisation
+
+**Snowflake Platform (CBA)**
+
+- **Current:** Leading Teradata to Snowflake migration teams
+- **Scope:** Enterprise-wide transformation
+- **Innovation:** Working with architects and engineers on unified batch and streaming architecture
 
 **Call Centre Database System (Postcode Lottery)**
 
 - **Technology:** Microsoft Access integrated with core systems
 - **Users:** 20+ call centre team members
 - **Features:** Customer tracking, complaints management
-- **Achievement:** Solo development and maintenance
-
-**Azure Data Platform (Westpac)**
-
-- **Journey:** Cloudera to Azure migration
-- **Components:** Lakehouse architecture, self-service analytics
-- **Scale:** 1000+ users, 24/7 operations
-- **Savings:** $5M annually through optimisation
-
-**Snowflake Platform (CBA)**
-
-- **Current:** Teradata to Snowflake migration
-- **Scope:** Enterprise-wide transformation
-- **Innovation:** Unified batch and streaming architecture
+- **Achievement:** Solo development and maintenance (early career)
 
 ---
 

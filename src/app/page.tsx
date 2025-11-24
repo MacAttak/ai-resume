@@ -43,7 +43,7 @@ export default function Home() {
             <div className="p-4 border rounded-lg">
               <h3 className="font-semibold mb-2">Data Platforms</h3>
               <p className="text-sm text-muted-foreground">
-                Enterprise platforms: Snowflake, Teradata, Azure Data Lake
+                Enterprise platforms: Snowflake, Teradata, AWS & Azure
               </p>
             </div>
             <div className="p-4 border rounded-lg">
