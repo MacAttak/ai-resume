@@ -77,10 +77,10 @@ describe('GET /api/conversation', () => {
         },
       ];
 
-      vi.mocked(getConversation).mockResolvedValue({
+      setupConversationMock(getConversation, {
         messages: mockMessages,
         agentHistory: [],
-      } as any);
+      });
       setupRateLimitMock(checkRateLimit);
 
       const response = await GET();
@@ -92,13 +92,10 @@ describe('GET /api/conversation', () => {
     });
 
     it('returns usage information', async () => {
-      vi.mocked(getConversation).mockResolvedValue(null);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
+      setupConversationMock(getConversation, null);
+      setupRateLimitMock(checkRateLimit, {
         minuteRemaining: 5,
         dayRemaining: 50,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
       });
 
       const response = await GET();
@@ -115,7 +112,7 @@ describe('GET /api/conversation', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      setupAuthMock(auth);
     });
 
     it('returns 500 when getConversation throws error', async () => {
@@ -130,7 +127,7 @@ describe('GET /api/conversation', () => {
     });
 
     it('returns 500 when checkRateLimit throws error', async () => {
-      vi.mocked(getConversation).mockResolvedValue(null);
+      setupConversationMock(getConversation, null);
       vi.mocked(checkRateLimit).mockRejectedValue(new Error('Redis error'));
 
       const response = await GET();

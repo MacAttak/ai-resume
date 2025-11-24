@@ -250,7 +250,10 @@ describe('POST /api/chat/stream', () => {
     });
 
     it('includes usage stats in completion event', async () => {
-      setupRateLimitMock(checkRateLimit, { minuteRemaining: 5, dayRemaining: 50 });
+      setupRateLimitMock(checkRateLimit, {
+        minuteRemaining: 5,
+        dayRemaining: 50,
+      });
       setupStreamMock(runDanielAgentStream, [
         { type: 'content', content: 'Response' },
         { type: 'done' },

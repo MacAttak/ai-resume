@@ -56,7 +56,11 @@ export const setupAddMessageMock = (addMessage: any) => {
 
 export const setupStreamMock = (
   runDanielAgentStream: any,
-  events: Array<{ type: 'content' | 'done' | 'complete' | 'error'; content?: string; error?: string }>
+  events: Array<{
+    type: 'content' | 'done' | 'complete' | 'error';
+    content?: string;
+    error?: string;
+  }>
 ) => {
   const mockStream = (async function* () {
     for (const event of events) {
@@ -76,6 +80,20 @@ export const setupAuthenticatedRequest = (
   }
 ) => {
   setupAuthMock(auth);
-  setupRateLimitMock(checkRateLimit, { allowed: options?.rateLimitAllowed ?? true });
+  setupRateLimitMock(checkRateLimit, {
+    allowed: options?.rateLimitAllowed ?? true,
+  });
   setupConversationMock(getConversation, options?.conversationState ?? null);
+};
+
+export const createMockMessages = (count: number = 2) => {
+  const messages = [];
+  for (let i = 0; i < count; i++) {
+    messages.push({
+      role: i % 2 === 0 ? ('user' as const) : ('assistant' as const),
+      content: i % 2 === 0 ? `Message ${i + 1}` : `Response ${i + 1}`,
+      timestamp: new Date(),
+    });
+  }
+  return messages;
 };

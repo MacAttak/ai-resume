@@ -4,7 +4,7 @@ import {
   setupAuthMock,
   setupRateLimitMock,
   setupConversationMock,
-  createMockRateLimitResponse,
+  createMockMessages,
 } from '@/test/api-test-helpers';
 
 // Mock modules
@@ -82,20 +82,12 @@ describe('GET /api/usage', () => {
     it('returns message count from conversation', async () => {
       setupRateLimitMock(checkRateLimit);
 
-      const mockMessages = [
-        { role: 'user' as const, content: 'Message 1', timestamp: new Date() },
-        {
-          role: 'assistant' as const,
-          content: 'Response 1',
-          timestamp: new Date(),
-        },
-        { role: 'user' as const, content: 'Message 2', timestamp: new Date() },
-      ];
+      const mockMessages = createMockMessages(3);
 
-      vi.mocked(getConversation).mockResolvedValue({
+      setupConversationMock(getConversation, {
         messages: mockMessages,
         agentHistory: [],
-      } as any);
+      });
 
       const response = await GET();
       const data = await response.json();
@@ -105,7 +97,7 @@ describe('GET /api/usage', () => {
 
     it('returns 0 message count when no conversation exists', async () => {
       setupRateLimitMock(checkRateLimit);
-      vi.mocked(getConversation).mockResolvedValue(null);
+      setupConversationMock(getConversation, null);
 
       const response = await GET();
       const data = await response.json();
@@ -114,9 +106,9 @@ describe('GET /api/usage', () => {
     });
 
     it('fetches rate limit and conversation in parallel', async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      setupAuthMock(auth);
       setupRateLimitMock(checkRateLimit);
-      vi.mocked(getConversation).mockResolvedValue(null);
+      setupConversationMock(getConversation, null);
 
       await GET();
 
@@ -128,12 +120,12 @@ describe('GET /api/usage', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      setupAuthMock(auth);
     });
 
     it('throws error when checkRateLimit fails', async () => {
       vi.mocked(checkRateLimit).mockRejectedValue(new Error('Redis error'));
-      vi.mocked(getConversation).mockResolvedValue(null);
+      setupConversationMock(getConversation, null);
 
       await expect(GET()).rejects.toThrow('Redis error');
     });
