@@ -8,6 +8,7 @@ import {
   setupAddMessageMock,
   setupStreamMock,
   setupAuthenticatedRequest,
+  expectUnauthorized,
 } from '@/test/api-test-helpers';
 
 // Mock modules
@@ -69,9 +70,7 @@ describe('POST /api/chat/stream', () => {
       const request = createMockRequest({ message: 'Hello' });
       const response = await POST(request);
 
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe('Unauthorized');
+      await expectUnauthorized(response);
     });
 
     it('proceeds when user is authenticated', async () => {

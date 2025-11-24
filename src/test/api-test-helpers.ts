@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 
 /**
  * Common test helpers for API route tests
@@ -96,4 +96,23 @@ export const createMockMessages = (count: number = 2) => {
     });
   }
   return messages;
+};
+
+/**
+ * Common test assertion helpers
+ */
+export const expectUnauthorized = async (response: Response) => {
+  expect(response.status).toBe(401);
+  const data = await response.json();
+  expect(data.error).toBe('Unauthorized');
+};
+
+export const expectInternalServerError = async (response: Response) => {
+  expect(response.status).toBe(500);
+  const data = await response.json();
+  expect(data.error).toBe('Internal server error');
+};
+
+export const expectSuccess = async (response: Response) => {
+  expect(response.status).toBe(200);
 };

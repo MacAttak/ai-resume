@@ -4,6 +4,8 @@ import {
   setupAuthMock,
   setupRateLimitMock,
   setupConversationMock,
+  expectUnauthorized,
+  expectInternalServerError,
 } from '@/test/api-test-helpers';
 
 // Mock modules
@@ -35,9 +37,7 @@ describe('GET /api/conversation', () => {
 
       const response = await GET();
 
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe('Unauthorized');
+      await expectUnauthorized(response);
     });
 
     it('proceeds when user is authenticated', async () => {
@@ -121,9 +121,7 @@ describe('GET /api/conversation', () => {
 
       const response = await GET();
 
-      expect(response.status).toBe(500);
-      const data = await response.json();
-      expect(data.error).toBe('Internal server error');
+      await expectInternalServerError(response);
     });
 
     it('returns 500 when checkRateLimit throws error', async () => {
@@ -132,9 +130,7 @@ describe('GET /api/conversation', () => {
 
       const response = await GET();
 
-      expect(response.status).toBe(500);
-      const data = await response.json();
-      expect(data.error).toBe('Internal server error');
+      await expectInternalServerError(response);
     });
   });
 });

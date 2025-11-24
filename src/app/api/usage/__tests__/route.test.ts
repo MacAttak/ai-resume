@@ -5,6 +5,7 @@ import {
   setupRateLimitMock,
   setupConversationMock,
   createMockMessages,
+  expectUnauthorized,
 } from '@/test/api-test-helpers';
 
 // Mock modules
@@ -36,9 +37,7 @@ describe('GET /api/usage', () => {
 
       const response = await GET();
 
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe('Unauthorized');
+      await expectUnauthorized(response);
     });
 
     it('proceeds when user is authenticated', async () => {

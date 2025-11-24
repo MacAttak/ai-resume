@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
+import { expectUnauthorized } from '@/test/api-test-helpers';
 
 // Mock modules
 vi.mock('@clerk/nextjs/server', () => ({
@@ -25,9 +26,7 @@ describe('POST /api/conversation/clear', () => {
 
       const response = await POST();
 
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe('Unauthorized');
+      await expectUnauthorized(response);
     });
 
     it('proceeds when user is authenticated', async () => {
