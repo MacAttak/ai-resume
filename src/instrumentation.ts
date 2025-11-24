@@ -4,7 +4,7 @@ import { HoneyHiveTracer } from 'honeyhive';
 // Initialize HoneyHive tracer globally if API key is available
 let honeyHiveTracer: HoneyHiveTracer | null = null;
 
-export function register() {
+export async function register() {
   // Register Vercel OpenTelemetry
   registerOTel({
     serviceName: 'ai-resume',
@@ -13,7 +13,7 @@ export function register() {
   // Initialize HoneyHive tracer for production tracing
   if (process.env.HONEYHIVE_API_KEY && process.env.HONEYHIVE_PROJECT) {
     try {
-      honeyHiveTracer = new HoneyHiveTracer({
+      honeyHiveTracer = await HoneyHiveTracer.init({
         apiKey: process.env.HONEYHIVE_API_KEY,
         project: process.env.HONEYHIVE_PROJECT,
         serverUrl: 'https://api.honeyhive.ai',

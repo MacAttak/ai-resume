@@ -30,10 +30,9 @@ export async function POST(req: NextRequest) {
 
       // Start HoneyHive session for this conversation
       if (honeyHive) {
-        await honeyHive.startSession({
-          project: process.env.HONEYHIVE_PROJECT || 'ai-resume',
-          sessionName: `chat-${userId}-${Date.now()}`,
-          source: 'production',
+        await honeyHive.startSession();
+        await honeyHive.enrichSession({
+          metadata: { userId, sessionName: `chat-${userId}-${Date.now()}` },
           inputs: { userId },
         });
       }
@@ -99,7 +98,7 @@ export async function POST(req: NextRequest) {
             // Track start of agent processing in HoneyHive
             const startTime = Date.now();
             if (honeyHive) {
-              await honeyHive.enrichEvent({
+              honeyHive.enrichSpan({
                 eventName: 'agent.start',
                 inputs: { message, conversationLength: agentHistory.length },
                 metadata: { userId },
@@ -173,7 +172,7 @@ export async function POST(req: NextRequest) {
                 // Track completion in HoneyHive
                 const duration = Date.now() - startTime;
                 if (honeyHive) {
-                  await honeyHive.enrichEvent({
+                  honeyHive.enrichSpan({
                     eventName: 'agent.complete',
                     outputs: { response: finalContent },
                     metrics: {
@@ -182,10 +181,11 @@ export async function POST(req: NextRequest) {
                     },
                     metadata: { userId, success: true },
                   });
-                  await honeyHive.endSession({
+                  await honeyHive.enrichSession({
                     outputs: { finalResponse: finalContent },
                     metrics: { total_duration_ms: duration },
                   });
+                  await honeyHive.flush();
                 }
 
                 // Send completion event

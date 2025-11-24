@@ -78,7 +78,7 @@ export function sanitizeLogData(data: any): any {
 /**
  * Send log event to HoneyHive for centralized observability
  */
-async function sendToHoneyHive(
+function sendToHoneyHive(
   level: 'info' | 'warn' | 'error' | 'debug',
   message: string,
   data?: any
@@ -89,8 +89,8 @@ async function sendToHoneyHive(
       return; // HoneyHive not configured
     }
 
-    // Create a log event
-    await tracer.enrichEvent({
+    // Create a log event using enrichSpan (synchronous)
+    tracer.enrichSpan({
       eventName: `log.${level}`,
       metadata: {
         level,
@@ -118,8 +118,8 @@ export const logger = {
     } else {
       console.log(message);
     }
-    // Send to HoneyHive asynchronously (don't await to avoid blocking)
-    sendToHoneyHive('info', message, data).catch(() => {});
+    // Send to HoneyHive (synchronous, non-blocking)
+    sendToHoneyHive('info', message, data);
   },
 
   /**
@@ -143,8 +143,8 @@ export const logger = {
     } else {
       console.error(message);
     }
-    // Send to HoneyHive asynchronously
-    sendToHoneyHive('error', message, sanitizedError).catch(() => {});
+    // Send to HoneyHive
+    sendToHoneyHive('error', message, sanitizedError);
   },
 
   /**
@@ -156,8 +156,8 @@ export const logger = {
     } else {
       console.warn(message);
     }
-    // Send to HoneyHive asynchronously
-    sendToHoneyHive('warn', message, data).catch(() => {});
+    // Send to HoneyHive
+    sendToHoneyHive('warn', message, data);
   },
 
   /**
@@ -172,7 +172,7 @@ export const logger = {
         console.debug(message);
       }
       // Send to HoneyHive in development too
-      sendToHoneyHive('debug', message, data).catch(() => {});
+      sendToHoneyHive('debug', message, data);
     }
   },
 };

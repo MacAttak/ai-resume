@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
 
+  // Externalize packages that are not compatible with bundling
+  serverExternalPackages: ['honeyhive'],
+
   // Add headers for API routes to prevent caching of user-specific data
   async headers() {
     return [
