@@ -110,6 +110,13 @@ describe('Security Headers Configuration', () => {
       expect(csp).toBeDefined();
       expect(csp.value).toContain('https://vercel.live');
       expect(csp.value).toContain('https://va.vercel-scripts.com');
+      // Vercel Live needs frame-src for iframe embedding
+      expect(csp.value).toMatch(/frame-src[^;]*https:\/\/vercel\.live/);
+    });
+
+    it('should allow blob: URLs for images (favicon support)', () => {
+      expect(csp).toBeDefined();
+      expect(csp.value).toMatch(/img-src[^;]*blob:/);
     });
   });
 });
