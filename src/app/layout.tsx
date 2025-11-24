@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.className} pb-12`}>
+        <body className={`${inter.className} pb-16 md:pb-12`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

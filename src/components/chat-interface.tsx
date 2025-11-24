@@ -7,11 +7,18 @@ import { UsageDisplay } from './usage-display';
 import { BookingButton } from './booking-button';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
-import { AlertCircle, Trash2 } from 'lucide-react';
+import { AlertCircle, Trash2, MoreVertical, Info, Palette } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { AboutModal } from './AboutModal';
 import { UserButton } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/theme-toggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 
 type Message = {
@@ -25,6 +32,7 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   const { toast } = useToast();
   const [usage, setUsage] = useState({
     minuteRemaining: 10,
@@ -190,7 +198,6 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
       {/* Header - Fixed at top */}
-      {/* Header - Fixed at top */}
       <div className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-b bg-background">
         <Link
           href="/"
@@ -199,22 +206,63 @@ export function ChatInterface() {
           Agent McCarthy
         </Link>
         <div className="flex gap-2 items-center">
-          <AboutModal />
-          <ThemeToggle />
-          <UsageDisplay usage={usage} />
-          <BookingButton />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClearConversation}
-            disabled={messages.length === 0}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Clear Chat</span>
-          </Button>
-          <UserButton />
+          {/* Desktop: Show all buttons */}
+          <div className="hidden md:flex gap-2 items-center">
+            <AboutModal />
+            <ThemeToggle />
+            <UsageDisplay usage={usage} />
+            <BookingButton />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearConversation}
+              disabled={messages.length === 0}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Clear Chat</span>
+            </Button>
+            <UserButton />
+          </div>
+
+          {/* Mobile: Show essential buttons + overflow menu */}
+          <div className="md:hidden flex gap-2 items-center">
+            <UsageDisplay usage={usage} />
+            <BookingButton />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setShowAboutModal(true)}>
+                  <Info className="h-4 w-4 mr-2" />
+                  About
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="flex items-center">
+                      <Palette className="h-4 w-4 mr-2" />
+                      Theme
+                    </span>
+                    <ThemeToggle />
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleClearConversation}
+                  disabled={messages.length === 0}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear Chat
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <UserButton />
+          </div>
         </div>
       </div>
+      <AboutModal open={showAboutModal} onOpenChange={setShowAboutModal} />
 
       {/* Error Alert - Fixed below header */}
       {error && (
@@ -306,7 +354,7 @@ export function ChatInterface() {
       </div>
 
       {/* Input - Fixed at bottom, always visible */}
-      <div className="flex-shrink-0 border-t bg-background p-4 z-10">
+      <div className="flex-shrink-0 border-t bg-background p-4 z-10 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <ChatInput
           value={input}
           onChange={setInput}

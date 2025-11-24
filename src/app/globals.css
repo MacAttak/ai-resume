@@ -68,6 +68,27 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Mobile touch optimizations */
+  @media (hover: none) and (pointer: coarse) {
+    /* Better tap highlighting for mobile */
+    * {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+      -webkit-touch-callout: none;
+    }
+
+    /* Smooth scrolling on mobile */
+    html {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevent text selection on interactive elements */
+    button, a {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  }
 }
 
 @layer components {
