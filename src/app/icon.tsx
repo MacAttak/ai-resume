@@ -8,8 +8,8 @@ import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 export const size = {
-  width: 512,
-  height: 512,
+  width: 128,
+  height: 128,
 };
 export const contentType = 'image/png';
 
@@ -30,8 +30,8 @@ export default function Icon() {
         <img
           src="https://chatwithdan.chat/macattak.png"
           alt="Icon"
-          width="512"
-          height="512"
+          width="128"
+          height="128"
           style={{
             borderRadius: '50%',
             objectFit: 'cover',
