@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
+import {
+  setupAuthMock,
+  setupRateLimitMock,
+  setupConversationMock,
+} from '@/test/api-test-helpers';
 
 // Mock modules
 vi.mock('@clerk/nextjs/server', () => ({
@@ -26,7 +31,7 @@ describe('GET /api/conversation', () => {
 
   describe('Authentication', () => {
     it('returns 401 when user is not authenticated', async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+      setupAuthMock(auth, null);
 
       const response = await GET();
 
@@ -36,15 +41,9 @@ describe('GET /api/conversation', () => {
     });
 
     it('proceeds when user is authenticated', async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(getConversation).mockResolvedValue(null);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupAuthMock(auth);
+      setupConversationMock(getConversation, null);
+      setupRateLimitMock(checkRateLimit);
 
       const response = await GET();
 
@@ -54,18 +53,12 @@ describe('GET /api/conversation', () => {
 
   describe('Response Data', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      setupAuthMock(auth);
     });
 
     it('returns empty messages array when no conversation exists', async () => {
-      vi.mocked(getConversation).mockResolvedValue(null);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupConversationMock(getConversation, null);
+      setupRateLimitMock(checkRateLimit);
 
       const response = await GET();
       const data = await response.json();
@@ -77,20 +70,18 @@ describe('GET /api/conversation', () => {
     it('returns existing conversation messages', async () => {
       const mockMessages = [
         { role: 'user' as const, content: 'Hello', timestamp: new Date() },
-        { role: 'assistant' as const, content: 'Hi there!', timestamp: new Date() },
+        {
+          role: 'assistant' as const,
+          content: 'Hi there!',
+          timestamp: new Date(),
+        },
       ];
 
       vi.mocked(getConversation).mockResolvedValue({
         messages: mockMessages,
         agentHistory: [],
       } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupRateLimitMock(checkRateLimit);
 
       const response = await GET();
       const data = await response.json();
@@ -129,13 +120,7 @@ describe('GET /api/conversation', () => {
 
     it('returns 500 when getConversation throws error', async () => {
       vi.mocked(getConversation).mockRejectedValue(new Error('Database error'));
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupRateLimitMock(checkRateLimit);
 
       const response = await GET();
 

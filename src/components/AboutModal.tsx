@@ -7,10 +7,22 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Info, Github, BookOpen, Cpu, Shield, Zap, Database } from 'lucide-react';
+import {
+  Info,
+  Github,
+  BookOpen,
+  Cpu,
+  Shield,
+  Zap,
+  Database,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function AboutModal({ children }: { readonly children?: React.ReactNode }) {
+export function AboutModal({
+  children,
+}: {
+  readonly children?: React.ReactNode;
+}) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -23,7 +35,9 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">About Agent McCarthy</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">
+            About Agent McCarthy
+          </DialogTitle>
           <DialogDescription className="text-center text-base mt-2">
             An interactive career agent powered by advanced AI
           </DialogDescription>
@@ -33,9 +47,18 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
           {/* AI Developed Preamble */}
           <div className="bg-primary/5 p-6 rounded-xl border border-primary/10 text-center">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              <span className="font-semibold text-foreground">AI Native Development:</span> This entire application was architected and built by AI agents 
-              (<span className="font-medium text-foreground">Claude Code</span> and <span className="font-medium text-foreground">Google Antigravity</span>) 
-              under the guidance of Daniel McCarthy. It demonstrates the potential of human-AI collaboration in modern software engineering.
+              <span className="font-semibold text-foreground">
+                AI Native Development:
+              </span>{' '}
+              This entire application was architected and built by AI agents (
+              <span className="font-medium text-foreground">Claude Code</span>{' '}
+              and{' '}
+              <span className="font-medium text-foreground">
+                Google Antigravity
+              </span>
+              ) under the guidance of Daniel McCarthy. It demonstrates the
+              potential of human-AI collaboration in modern software
+              engineering.
             </p>
           </div>
 
@@ -54,7 +77,8 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  Built with Next.js 14 (App Router), OpenAI AgentSDK for orchestration, and Vercel AI SDK for streaming responses.
+                  Built with Next.js 14 (App Router), OpenAI AgentSDK for
+                  orchestration, and Vercel AI SDK for streaming responses.
                 </CardContent>
               </Card>
 
@@ -66,7 +90,8 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  Retrieval-Augmented Generation using vector embeddings to ground responses in Daniel's actual professional experience.
+                  Retrieval-Augmented Generation using vector embeddings to
+                  ground responses in Daniel's actual professional experience.
                 </CardContent>
               </Card>
 
@@ -78,7 +103,8 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  Secure authentication via Clerk, with robust rate limiting and edge middleware protection.
+                  Secure authentication via Clerk, with robust rate limiting and
+                  edge middleware protection.
                 </CardContent>
               </Card>
 
@@ -90,7 +116,8 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  Optimized for edge deployment on Vercel with sub-second latency and streaming UI updates.
+                  Optimized for edge deployment on Vercel with sub-second
+                  latency and streaming UI updates.
                 </CardContent>
               </Card>
             </div>
@@ -98,12 +125,19 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
 
           {/* Code & Docs - Centered */}
           <div className="text-center space-y-4 pt-4 border-t">
-            <h3 className="text-lg font-semibold">Source Code & Documentation</h3>
+            <h3 className="text-lg font-semibold">
+              Source Code & Documentation
+            </h3>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              Explore the codebase and detailed technical documentation to see how this agent was built.
+              Explore the codebase and detailed technical documentation to see
+              how this agent was built.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="outline" className="inline-flex items-center gap-2" asChild>
+              <Button
+                variant="outline"
+                className="inline-flex items-center gap-2"
+                asChild
+              >
                 <a
                   href="https://deepwiki.com/MacAttak/ai-resume"
                   target="_blank"
@@ -114,7 +148,11 @@ export function AboutModal({ children }: { readonly children?: React.ReactNode }
                   <span>Read the Docs</span>
                 </a>
               </Button>
-              <Button variant="outline" className="inline-flex items-center gap-2" asChild>
+              <Button
+                variant="outline"
+                className="inline-flex items-center gap-2"
+                asChild
+              >
                 <a
                   href="https://github.com/MacAttak/ai-resume"
                   target="_blank"

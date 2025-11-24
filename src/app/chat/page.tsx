@@ -8,8 +8,6 @@ export default async function ChatPage() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
-
-
       {/* Chat Interface */}
       <div className="flex-1 overflow-hidden">
         <ChatInterface />

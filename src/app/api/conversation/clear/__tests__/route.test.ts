@@ -69,7 +69,9 @@ describe('POST /api/conversation/clear', () => {
     });
 
     it('throws error when clearConversation fails', async () => {
-      vi.mocked(clearConversation).mockRejectedValue(new Error('Database error'));
+      vi.mocked(clearConversation).mockRejectedValue(
+        new Error('Database error')
+      );
 
       await expect(POST()).rejects.toThrow('Database error');
     });

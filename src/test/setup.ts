@@ -34,7 +34,8 @@ vi.mock('@clerk/nextjs', () => ({
     isLoaded: true,
   }),
   ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
-  UserButton: ({ children }: { children?: React.ReactNode }) => children || null,
+  UserButton: ({ children }: { children?: React.ReactNode }) =>
+    children || null,
 }));
 
 // Mock environment variables

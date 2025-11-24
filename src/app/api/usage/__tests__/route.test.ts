@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
+import {
+  setupAuthMock,
+  setupRateLimitMock,
+  setupConversationMock,
+  createMockRateLimitResponse,
+} from '@/test/api-test-helpers';
 
 // Mock modules
 vi.mock('@clerk/nextjs/server', () => ({
@@ -26,7 +32,7 @@ describe('GET /api/usage', () => {
 
   describe('Authentication', () => {
     it('returns 401 when user is not authenticated', async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+      setupAuthMock(auth, null);
 
       const response = await GET();
 
@@ -36,15 +42,9 @@ describe('GET /api/usage', () => {
     });
 
     it('proceeds when user is authenticated', async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
-      vi.mocked(getConversation).mockResolvedValue(null);
+      setupAuthMock(auth);
+      setupRateLimitMock(checkRateLimit);
+      setupConversationMock(getConversation, null);
 
       const response = await GET();
 
@@ -54,7 +54,7 @@ describe('GET /api/usage', () => {
 
   describe('Usage Data', () => {
     beforeEach(() => {
-      vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
+      setupAuthMock(auth);
     });
 
     it('returns rate limit information', async () => {
@@ -80,17 +80,15 @@ describe('GET /api/usage', () => {
     });
 
     it('returns message count from conversation', async () => {
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupRateLimitMock(checkRateLimit);
 
       const mockMessages = [
         { role: 'user' as const, content: 'Message 1', timestamp: new Date() },
-        { role: 'assistant' as const, content: 'Response 1', timestamp: new Date() },
+        {
+          role: 'assistant' as const,
+          content: 'Response 1',
+          timestamp: new Date(),
+        },
         { role: 'user' as const, content: 'Message 2', timestamp: new Date() },
       ];
 
@@ -106,13 +104,7 @@ describe('GET /api/usage', () => {
     });
 
     it('returns 0 message count when no conversation exists', async () => {
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupRateLimitMock(checkRateLimit);
       vi.mocked(getConversation).mockResolvedValue(null);
 
       const response = await GET();
@@ -123,13 +115,7 @@ describe('GET /api/usage', () => {
 
     it('fetches rate limit and conversation in parallel', async () => {
       vi.mocked(auth).mockResolvedValue({ userId: 'test-user-id' } as any);
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupRateLimitMock(checkRateLimit);
       vi.mocked(getConversation).mockResolvedValue(null);
 
       await GET();
@@ -153,13 +139,7 @@ describe('GET /api/usage', () => {
     });
 
     it('throws error when getConversation fails', async () => {
-      vi.mocked(checkRateLimit).mockResolvedValue({
-        allowed: true,
-        minuteRemaining: 10,
-        dayRemaining: 100,
-        resetMinute: new Date(Date.now() + 60000),
-        resetDay: new Date(Date.now() + 86400000),
-      });
+      setupRateLimitMock(checkRateLimit);
       vi.mocked(getConversation).mockRejectedValue(new Error('Database error'));
 
       await expect(GET()).rejects.toThrow('Database error');

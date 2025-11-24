@@ -32,9 +32,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-8">
         <div className="max-w-2xl text-center space-y-6">
-          <h2 className="text-4xl font-bold">
-            Chat with Agent McCarthy
-          </h2>
+          <h2 className="text-4xl font-bold">Chat with Agent McCarthy</h2>
           <p className="text-xl text-muted-foreground">
             Ask about my data platform architecture, AI engineering experience,
             team leadership, or technical expertise across the full data and AI
@@ -81,8 +79,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-
-
     </div>
   );
 }

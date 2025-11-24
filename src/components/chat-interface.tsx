@@ -192,7 +192,10 @@ export function ChatInterface() {
       {/* Header - Fixed at top */}
       {/* Header - Fixed at top */}
       <div className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-b bg-background">
-        <Link href="/" className="text-xl md:text-2xl font-bold hover:underline">
+        <Link
+          href="/"
+          className="text-xl md:text-2xl font-bold hover:underline"
+        >
           Agent McCarthy
         </Link>
         <div className="flex gap-2 items-center">

@@ -233,7 +233,7 @@ describe('POST /api/chat/stream', () => {
       await POST(request);
 
       // Wait a bit for stream to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(addMessage).toHaveBeenCalledWith(
         'test-user-id',
@@ -328,8 +328,14 @@ describe('POST /api/chat/stream', () => {
 
     it('uses existing conversation history', async () => {
       const existingHistory = [
-        { role: 'user', content: [{ type: 'input_text', text: 'Previous message' }] },
-        { role: 'assistant', content: [{ type: 'text', text: 'Previous response' }] },
+        {
+          role: 'user',
+          content: [{ type: 'input_text', text: 'Previous message' }],
+        },
+        {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'Previous response' }],
+        },
       ];
 
       vi.mocked(getConversation).mockResolvedValue({
