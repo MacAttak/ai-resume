@@ -66,3 +66,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# evaluation outputs
+/eval-outputs/
+eval_output*.txt

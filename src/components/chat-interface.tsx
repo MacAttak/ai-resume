@@ -9,6 +9,10 @@ import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { AlertCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { AboutModal } from './AboutModal';
+import { UserButton } from '@clerk/nextjs';
+import { ThemeToggle } from '@/components/theme-toggle';
+import Link from 'next/link';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -186,11 +190,17 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
       {/* Header - Fixed at top */}
+      {/* Header - Fixed at top */}
       <div className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-b bg-background">
-        <h1 className="text-xl md:text-2xl font-bold">
-          Chat with Daniel McCarthy
-        </h1>
+        <Link
+          href="/"
+          className="text-xl md:text-2xl font-bold hover:underline"
+        >
+          Agent McCarthy
+        </Link>
         <div className="flex gap-2 items-center">
+          <AboutModal />
+          <ThemeToggle />
           <UsageDisplay usage={usage} />
           <BookingButton />
           <Button
@@ -202,6 +212,7 @@ export function ChatInterface() {
             <Trash2 className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Clear Chat</span>
           </Button>
+          <UserButton />
         </div>
       </div>
 
