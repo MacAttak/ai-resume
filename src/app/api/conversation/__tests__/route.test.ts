@@ -107,8 +107,8 @@ describe('GET /api/conversation', () => {
       expect(data.usage).toEqual({
         minuteRemaining: 5,
         dayRemaining: 50,
-        resetMinute: expect.any(Number),
-        resetDay: expect.any(Number),
+        resetMinute: expect.any(String),
+        resetDay: expect.any(String),
       });
     });
   });

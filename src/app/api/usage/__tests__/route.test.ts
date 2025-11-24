@@ -68,15 +68,15 @@ describe('GET /api/usage', () => {
         resetMinute,
         resetDay,
       });
-      vi.mocked(getConversation).mockResolvedValue(null);
+      setupConversationMock(getConversation, null);
 
       const response = await GET();
       const data = await response.json();
 
       expect(data.minuteRemaining).toBe(8);
       expect(data.dayRemaining).toBe(75);
-      expect(data.resetMinute).toBe(resetMinute);
-      expect(data.resetDay).toBe(resetDay);
+      expect(data.resetMinute).toBe(resetMinute.toISOString());
+      expect(data.resetDay).toBe(resetDay.toISOString());
     });
 
     it('returns message count from conversation', async () => {
