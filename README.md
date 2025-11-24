@@ -120,6 +120,7 @@ npm run env:pull
 This command pulls environment variables from Vercel and creates a `.env.local` file. All secrets are managed securely through the Vercel Dashboard and pulled locally for development.
 
 **Important:**
+
 - Never commit `.env.local` files to git
 - Use `.env.example` as a reference for required variables
 - See [SECURITY.md](SECURITY.md) for secrets management best practices
@@ -139,6 +140,7 @@ Open [http://localhost:3000](http://localhost:3000)
 All environment variables are managed through the Vercel Dashboard for security and team collaboration.
 
 **Pull latest variables:**
+
 ```bash
 npm run env:pull                    # Development environment
 npm run env:pull:preview            # Preview environment
@@ -146,6 +148,7 @@ npm run env:pull:production         # Production environment
 ```
 
 **Add new variable:**
+
 1. Add to Vercel Dashboard → Project Settings → Environment Variables
 2. Select appropriate environments (Development, Preview, Production)
 3. Mark as "Sensitive" for API keys/secrets
@@ -159,7 +162,7 @@ See [SECURITY.md](SECURITY.md) for complete secrets management documentation.
 | ----------------------------------- | --------------------------------------------------- | -------- |
 | `OPENAI_API_KEY`                    | OpenAI API key for AgentSDK                         | Yes      |
 | `OPENAI_PROJECT_ID`                 | OpenAI project ID (optional, for project resources) | No       |
-| `OPENAI_VECTOR_STORE_ID`            | OpenAI Vector Store ID for file search             | Yes      |
+| `OPENAI_VECTOR_STORE_ID`            | OpenAI Vector Store ID for file search              | Yes      |
 | `PRODUCTION_MODEL`                  | Production model override (default: gpt-5.1)        | No       |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key                               | Yes      |
 | `CLERK_SECRET_KEY`                  | Clerk secret key                                    | Yes      |

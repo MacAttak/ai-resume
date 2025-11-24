@@ -87,7 +87,9 @@ describe('Environment Variable Security', () => {
       );
       const agentConfigContent = fs.readFileSync(agentConfigPath, 'utf-8');
 
-      expect(agentConfigContent).toContain('process.env.OPENAI_VECTOR_STORE_ID');
+      expect(agentConfigContent).toContain(
+        'process.env.OPENAI_VECTOR_STORE_ID'
+      );
     });
 
     it('should have fallback for VECTOR_STORE_ID', () => {
@@ -105,9 +107,7 @@ describe('Environment Variable Security', () => {
   describe('package.json scripts', () => {
     it('should have env:pull script', () => {
       const packageJsonPath = path.join(process.cwd(), 'package.json');
-      const packageJson = JSON.parse(
-        fs.readFileSync(packageJsonPath, 'utf-8')
-      );
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
       expect(packageJson.scripts['env:pull']).toBeDefined();
       expect(packageJson.scripts['env:pull']).toContain('vercel env pull');
@@ -115,9 +115,7 @@ describe('Environment Variable Security', () => {
 
     it('should have env:pull:preview script', () => {
       const packageJsonPath = path.join(process.cwd(), 'package.json');
-      const packageJson = JSON.parse(
-        fs.readFileSync(packageJsonPath, 'utf-8')
-      );
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
       expect(packageJson.scripts['env:pull:preview']).toBeDefined();
       expect(packageJson.scripts['env:pull:preview']).toContain(
@@ -127,9 +125,7 @@ describe('Environment Variable Security', () => {
 
     it('should have env:pull:production script', () => {
       const packageJsonPath = path.join(process.cwd(), 'package.json');
-      const packageJson = JSON.parse(
-        fs.readFileSync(packageJsonPath, 'utf-8')
-      );
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
       expect(packageJson.scripts['env:pull:production']).toBeDefined();
       expect(packageJson.scripts['env:pull:production']).toContain(

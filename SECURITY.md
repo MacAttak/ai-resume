@@ -7,6 +7,7 @@ This document outlines security practices, procedures, and guidelines for the AI
 ### Local Development
 
 **Pull environment variables from Vercel:**
+
 ```bash
 npm run env:pull
 ```
@@ -14,6 +15,7 @@ npm run env:pull
 This creates/updates `.env.local` with development environment variables from Vercel. All secrets are encrypted at rest in Vercel and pulled securely via the Vercel CLI.
 
 **Important:**
+
 - Never commit `.env.local` files to git
 - The `.gitignore` file is configured to block all `.env*.local` files
 - Use `.env.example` as a template for required variables
@@ -41,6 +43,7 @@ When rotating secrets (recommended quarterly or after potential exposure):
 5. **Restart local development server:** `npm run dev`
 
 **Services requiring rotation:**
+
 - OpenAI API Key
 - Clerk Secret Key
 - Upstash Redis Token
@@ -54,14 +57,14 @@ Security headers are configured in [`vercel.json`](vercel.json) and applied at t
 
 ### Configured Headers
 
-| Header | Value | Purpose |
-|--------|-------|---------|
-| `X-Frame-Options` | DENY | Prevents clickjacking attacks |
-| `X-Content-Type-Options` | nosniff | Prevents MIME sniffing |
-| `Content-Security-Policy` | Restrictive policy | Prevents XSS, restricts resource loading |
-| `Referrer-Policy` | strict-origin-when-cross-origin | Controls referrer information |
-| `Permissions-Policy` | Restrictive | Disables unnecessary browser features |
-| `Strict-Transport-Security` | max-age=63072000 | Forces HTTPS (added by Vercel) |
+| Header                      | Value                           | Purpose                                  |
+| --------------------------- | ------------------------------- | ---------------------------------------- |
+| `X-Frame-Options`           | DENY                            | Prevents clickjacking attacks            |
+| `X-Content-Type-Options`    | nosniff                         | Prevents MIME sniffing                   |
+| `Content-Security-Policy`   | Restrictive policy              | Prevents XSS, restricts resource loading |
+| `Referrer-Policy`           | strict-origin-when-cross-origin | Controls referrer information            |
+| `Permissions-Policy`        | Restrictive                     | Disables unnecessary browser features    |
+| `Strict-Transport-Security` | max-age=63072000                | Forces HTTPS (added by Vercel)           |
 
 ### Testing Security Headers
 
@@ -83,10 +86,10 @@ The application uses a secure logger ([`src/lib/logger.ts`](src/lib/logger.ts)) 
 import { logger } from '@/lib/logger';
 
 // PII will be automatically redacted
-logger.info('User action', { 
-  email: 'user@example.com',  // Will be ***REDACTED***
-  name: 'John Doe',           // Will be ***REDACTED***
-  action: 'login'             // Will be logged
+logger.info('User action', {
+  email: 'user@example.com', // Will be ***REDACTED***
+  name: 'John Doe', // Will be ***REDACTED***
+  action: 'login', // Will be logged
 });
 
 // Error logging
@@ -102,6 +105,7 @@ logger.debug('Processing request', { requestId });
 ### Sanitized Fields
 
 The following fields are automatically redacted:
+
 - email, attendeeEmail
 - phone, phoneNumber
 - name, attendeeName
@@ -122,6 +126,7 @@ The following fields are automatically redacted:
 ### Message Length Limits
 
 Chat messages are limited to 4,000 characters to prevent:
+
 - DoS attacks via large payloads
 - Memory exhaustion
 - Database overflow
@@ -131,6 +136,7 @@ Enforced in: [`src/app/api/chat/stream/route.ts`](src/app/api/chat/stream/route.
 ### Cal.com Booking Validation
 
 All booking parameters are validated using Zod schemas:
+
 - Email format validation
 - Timezone validation (IANA format)
 - Date/time validation (24-hour minimum notice)
@@ -205,6 +211,7 @@ Webhooks use HMAC SHA-256 signature verification to ensure authenticity.
 ### Attack Challenge Mode
 
 During high-traffic or attack scenarios:
+
 1. Navigate to Vercel Dashboard → Security → Firewall
 2. Enable "Attack Challenge Mode"
 3. Legitimate users will pass browser challenges
@@ -217,6 +224,7 @@ During high-traffic or attack scenarios:
 If a secret is compromised or accidentally exposed:
 
 1. **Immediate Action:**
+
    ```bash
    # Rotate the compromised secret immediately
    # 1. Generate new secret in service dashboard
@@ -243,6 +251,7 @@ If a secret is compromised or accidentally exposed:
 **DO NOT** open public GitHub issues for security vulnerabilities.
 
 **Include in your report:**
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -258,12 +267,12 @@ If a secret is compromised or accidentally exposed:
 
 ### Data Retention
 
-| Data Type | Retention Period | Storage Location |
-|-----------|------------------|------------------|
-| Conversation history | 7 days | Upstash Redis |
-| User data (name, email) | Managed by Clerk | Clerk infrastructure |
-| Meeting bookings | Managed by Cal.com | Cal.com infrastructure |
-| Application logs | 7 days | Vercel logs |
+| Data Type               | Retention Period   | Storage Location       |
+| ----------------------- | ------------------ | ---------------------- |
+| Conversation history    | 7 days             | Upstash Redis          |
+| User data (name, email) | Managed by Clerk   | Clerk infrastructure   |
+| Meeting bookings        | Managed by Cal.com | Cal.com infrastructure |
+| Application logs        | 7 days             | Vercel logs            |
 
 ## Security Checklist
 
