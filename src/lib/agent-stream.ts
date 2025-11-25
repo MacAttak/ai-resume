@@ -1,10 +1,11 @@
 import { AgentInputItem, Runner } from '@openai/agents';
-import { traceChain } from 'honeyhive';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
 import { setCalToolsUserId } from './cal-tools';
+import { getHoneyHiveTracer } from '@/instrumentation';
 
 /**
  * Core agent execution function - runs the Daniel agent with conversation history
+ * This function is wrapped by the HoneyHive tracer when called via runDanielAgentStream
  */
 async function executeAgentRun(
   userMessage: string,
@@ -28,13 +29,6 @@ async function executeAgentRun(
   return { result, fullHistory };
 }
 
-/**
- * Traced wrapper for agent execution - captures inputs/outputs for HoneyHive observability
- */
-const tracedAgentRun = traceChain(executeAgentRun, {
-  eventName: 'daniel-agent-chat',
-});
-
 export async function* runDanielAgentStream(
   userMessage: string,
   conversationHistory: AgentInputItem[] = [],
@@ -52,11 +46,28 @@ export async function* runDanielAgentStream(
     let updatedHistory: AgentInputItem[] = [];
 
     try {
-      const { result, fullHistory } = await tracedAgentRun(
-        userMessage,
-        conversationHistory,
-        userId
-      );
+      // Get the HoneyHive tracer and use its trace method for proper context
+      const tracer = getHoneyHiveTracer();
+
+      // Create a traced version of the agent execution
+      const tracedExecution = async () => {
+        return executeAgentRun(userMessage, conversationHistory, userId);
+      };
+
+      // Use tracer.trace() if available, otherwise run directly
+      let executionResult: { result: any; fullHistory: AgentInputItem[] };
+      if (tracer) {
+        // Wrap with traceChain for proper span creation within session context
+        const tracedFn = tracer.traceChain(tracedExecution, {
+          eventName: 'daniel-agent-chat',
+        });
+        executionResult = await tracer.trace(tracedFn);
+      } else {
+        // Fallback when tracer not available (e.g., in tests)
+        executionResult = await tracedExecution();
+      }
+
+      const { result, fullHistory } = executionResult;
       updatedHistory = [...fullHistory];
 
       // Check if result is an async iterable (streaming)
