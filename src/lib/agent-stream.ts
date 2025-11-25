@@ -1,6 +1,39 @@
 import { AgentInputItem, Runner } from '@openai/agents';
+import { traceChain } from 'honeyhive';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
 import { setCalToolsUserId } from './cal-tools';
+
+/**
+ * Core agent execution function - runs the Daniel agent with conversation history
+ */
+async function executeAgentRun(
+  userMessage: string,
+  conversationHistory: AgentInputItem[],
+  userId?: string
+) {
+  setCalToolsUserId(userId);
+
+  const newUserItem: AgentInputItem = {
+    role: 'user',
+    content: [{ type: 'input_text', text: userMessage }],
+  };
+  const fullHistory = [...conversationHistory, newUserItem];
+
+  const daniel = createDanielAgent(userId);
+  const conversationId = `${Date.now()}`;
+  const runnerConfig = createRunnerConfig(conversationId);
+  const runner = new Runner(runnerConfig);
+  const result = await runner.run(daniel, fullHistory);
+
+  return { result, fullHistory };
+}
+
+/**
+ * Traced wrapper for agent execution - captures inputs/outputs for HoneyHive observability
+ */
+const tracedAgentRun = traceChain(executeAgentRun, {
+  eventName: 'daniel-agent-chat',
+});
 
 export async function* runDanielAgentStream(
   userMessage: string,
@@ -14,34 +47,17 @@ export async function* runDanielAgentStream(
   updatedHistory?: AgentInputItem[];
 }> {
   try {
-    // Set userId context for Cal.com tools
-    setCalToolsUserId(userId);
-
-    // Add user message to conversation
-    const newUserItem: AgentInputItem = {
-      role: 'user',
-      content: [
-        {
-          type: 'input_text',
-          text: userMessage,
-        },
-      ],
-    };
-
-    const fullHistory = [...conversationHistory, newUserItem];
-
-    // Configure runner with proper tracing
-    const conversationId = `${Date.now()}`;
-    const runnerConfig = createRunnerConfig(conversationId);
-    const runner = new Runner(runnerConfig);
-
-    // Run agent - try streaming first, fallback to chunked response
+    // Run agent with HoneyHive tracing - captures inputs/outputs automatically
     let accumulatedContent = '';
-    let updatedHistory = [...fullHistory];
+    let updatedHistory: AgentInputItem[] = [];
 
     try {
-      const daniel = createDanielAgent(userId);
-      const result = await runner.run(daniel, fullHistory);
+      const { result, fullHistory } = await tracedAgentRun(
+        userMessage,
+        conversationHistory,
+        userId
+      );
+      updatedHistory = [...fullHistory];
 
       // Check if result is an async iterable (streaming)
       if (
