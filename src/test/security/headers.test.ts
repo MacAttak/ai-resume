@@ -88,9 +88,9 @@ describe('Security Headers Configuration', () => {
       csp = getHeader(vercelConfig, 'Content-Security-Policy');
     });
 
-    it('should allow Clerk worker-src for web workers', () => {
+    it('should allow worker-src for web workers', () => {
       expect(csp).toBeDefined();
-      expect(csp.value).toContain("worker-src 'self' blob:");
+      expect(csp.value).toContain("worker-src 'self'");
     });
 
     it('should allow Cal.com scripts and frames', () => {
@@ -114,9 +114,10 @@ describe('Security Headers Configuration', () => {
       expect(csp.value).toMatch(/frame-src[^;]*https:\/\/vercel\.live/);
     });
 
-    it('should allow blob: URLs for images (favicon support)', () => {
+    it('should allow data: URLs and HTTPS for images', () => {
       expect(csp).toBeDefined();
-      expect(csp.value).toMatch(/img-src[^;]*blob:/);
+      expect(csp.value).toMatch(/img-src[^;]*data:/);
+      expect(csp.value).toMatch(/img-src[^;]*https:/);
     });
 
     it('should allow Clerk domains for all environments', () => {
