@@ -88,9 +88,9 @@ describe('Security Headers Configuration', () => {
       csp = getHeader(vercelConfig, 'Content-Security-Policy');
     });
 
-    it('should allow worker-src for web workers', () => {
+    it('should allow worker-src for web workers (Clerk requires blob:)', () => {
       expect(csp).toBeDefined();
-      expect(csp.value).toContain("worker-src 'self'");
+      expect(csp.value).toContain("worker-src 'self' blob:");
     });
 
     it('should allow Cal.com scripts and frames', () => {
