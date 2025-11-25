@@ -51,7 +51,9 @@ describe('ChatInterface', () => {
       ).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText(/100 \/ 100 messages today/)).toBeInTheDocument();
+    // We have two UsageDisplay components (desktop and mobile), so use getAllByText
+    const usageDisplays = screen.getAllByText(/100 \/ 100 messages today/);
+    expect(usageDisplays.length).toBeGreaterThan(0);
   });
 
   it('sends message when form is submitted', async () => {

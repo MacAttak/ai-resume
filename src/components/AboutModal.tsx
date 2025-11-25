@@ -20,11 +20,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function AboutModal({
   children,
+  open,
+  onOpenChange,
 }: {
   readonly children?: React.ReactNode;
+  readonly open?: boolean;
+  readonly onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         {children || (
           <Button variant="ghost" size="icon" title="About Agent McCarthy">

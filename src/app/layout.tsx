@@ -9,7 +9,13 @@ import { Disclaimer } from '@/components/Disclaimer';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// Determine base URL for metadata (critical for Vercel preview deployments)
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : 'http://localhost:3000';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: 'Agent McCarthy - Interactive Career Agent',
   description:
     "Chat with Agent McCarthy, an AI powered by Daniel McCarthy's professional experience",
@@ -23,7 +29,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.className} pb-12`}>
+        <body className={`${inter.className} pb-16 md:pb-12`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
