@@ -1,7 +1,8 @@
-import { AgentInputItem, Runner } from '@openai/agents';
+import { AgentInputItem, Runner, getGlobalTraceProvider } from '@openai/agents';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
 import { setCalToolsUserId } from './cal-tools';
 import { getHoneyHiveTracer } from '@/instrumentation';
+import { getHoneyHiveExporter } from './honeyhive-exporter';
 
 /**
  * Core agent execution function - runs the Daniel agent with conversation history
@@ -40,34 +41,42 @@ export async function* runDanielAgentStream(
   error?: string;
   updatedHistory?: AgentInputItem[];
 }> {
+  // Get HoneyHive tracer and exporter for this session
+  const tracer = getHoneyHiveTracer();
+  const exporter = getHoneyHiveExporter();
+
   try {
+    // Start HoneyHive session and link exporter to it
+    let sessionId: string | null = null;
+    if (tracer) {
+      sessionId = await tracer.startSession();
+
+      // Link the exporter to this session so SDK traces go to HoneyHive
+      if (exporter && sessionId) {
+        exporter.setSessionId(sessionId);
+      }
+
+      // Enrich session with initial inputs
+      await tracer.enrichSession({
+        inputs: {
+          userMessage,
+          conversationLength: conversationHistory.length,
+        },
+        metadata: { userId },
+      });
+    }
+
     // Run agent with HoneyHive tracing - captures inputs/outputs automatically
     let accumulatedContent = '';
     let updatedHistory: AgentInputItem[] = [];
 
     try {
-      // Get the HoneyHive tracer and use its trace method for proper context
-      const tracer = getHoneyHiveTracer();
-
-      // Create a traced version of the agent execution
-      const tracedExecution = async () => {
-        return executeAgentRun(userMessage, conversationHistory, userId);
-      };
-
-      // Use tracer.trace() if available, otherwise run directly
-      let executionResult: { result: any; fullHistory: AgentInputItem[] };
-      if (tracer) {
-        // Wrap with traceChain for proper span creation within session context
-        const tracedFn = tracer.traceChain(tracedExecution, {
-          eventName: 'daniel-agent-chat',
-        });
-        executionResult = await tracer.trace(tracedFn);
-      } else {
-        // Fallback when tracer not available (e.g., in tests)
-        executionResult = await tracedExecution();
-      }
-
-      const { result, fullHistory } = executionResult;
+      // Execute agent directly - tracing is now handled by the exporter
+      const { result, fullHistory } = await executeAgentRun(
+        userMessage,
+        conversationHistory,
+        userId
+      );
       updatedHistory = [...fullHistory];
 
       // Check if result is an async iterable (streaming)
@@ -196,11 +205,36 @@ export async function* runDanielAgentStream(
         ];
       }
     } catch (error) {
+      // Clear exporter session on error
+      if (exporter) {
+        exporter.clearSessionId();
+      }
       yield {
         type: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
       };
       return;
+    }
+
+    // Force flush SDK traces to HoneyHive before completing
+    try {
+      await getGlobalTraceProvider().forceFlush();
+    } catch (flushError) {
+      console.warn('[HoneyHive] Failed to flush traces:', flushError);
+    }
+
+    // Enrich session with final outputs
+    if (tracer) {
+      await tracer.enrichSession({
+        outputs: { response: accumulatedContent },
+        metrics: { responseLength: accumulatedContent.length },
+      });
+      await tracer.flush();
+    }
+
+    // Clear exporter session after completion
+    if (exporter) {
+      exporter.clearSessionId();
     }
 
     // Return final state
@@ -211,6 +245,10 @@ export async function* runDanielAgentStream(
     };
   } catch (error) {
     console.error('agent-stream error:', error);
+    // Clear exporter session on error
+    if (exporter) {
+      exporter.clearSessionId();
+    }
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',

@@ -1,5 +1,6 @@
 import { registerOTel } from '@vercel/otel';
 import { HoneyHiveTracer } from 'honeyhive';
+import { initHoneyHiveExporter } from '@/lib/honeyhive-exporter';
 
 // Initialize HoneyHive tracer globally if API key is available
 let honeyHiveTracer: HoneyHiveTracer | null = null;
@@ -22,7 +23,11 @@ export async function register() {
         verbose: process.env.NODE_ENV === 'development',
       });
 
-      console.log('[HoneyHive] Tracer initialized successfully');
+      // Initialize custom exporter to bridge @openai/agents traces to HoneyHive
+      // This intercepts SDK internal traces and forwards them to HoneyHive API
+      initHoneyHiveExporter();
+
+      console.log('[HoneyHive] Tracer and exporter initialized successfully');
     } catch (error) {
       console.error('[HoneyHive] Failed to initialize tracer:', error);
     }
