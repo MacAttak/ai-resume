@@ -17,9 +17,9 @@ export async function register() {
         apiKey: process.env.HONEYHIVE_API_KEY,
         project: process.env.HONEYHIVE_PROJECT,
         serverUrl: 'https://api.honeyhive.ai',
-        source: 'production',
+        source: process.env.VERCEL_ENV || 'development',
+        sessionName: 'ai-resume-chat',
         verbose: process.env.NODE_ENV === 'development',
-        disableBatch: false,
       });
 
       console.log('[HoneyHive] Tracer initialized successfully');

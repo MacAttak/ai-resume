@@ -1,6 +1,33 @@
 import { AgentInputItem, Runner } from '@openai/agents';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
 import { setCalToolsUserId } from './cal-tools';
+import { getHoneyHiveTracer } from '@/instrumentation';
+
+/**
+ * Core agent execution function - runs the Daniel agent with conversation history
+ * This function is wrapped by the HoneyHive tracer when called via runDanielAgentStream
+ */
+async function executeAgentRun(
+  userMessage: string,
+  conversationHistory: AgentInputItem[],
+  userId?: string
+) {
+  setCalToolsUserId(userId);
+
+  const newUserItem: AgentInputItem = {
+    role: 'user',
+    content: [{ type: 'input_text', text: userMessage }],
+  };
+  const fullHistory = [...conversationHistory, newUserItem];
+
+  const daniel = createDanielAgent(userId);
+  const conversationId = `${Date.now()}`;
+  const runnerConfig = createRunnerConfig(conversationId);
+  const runner = new Runner(runnerConfig);
+  const result = await runner.run(daniel, fullHistory);
+
+  return { result, fullHistory };
+}
 
 export async function* runDanielAgentStream(
   userMessage: string,
@@ -14,34 +41,34 @@ export async function* runDanielAgentStream(
   updatedHistory?: AgentInputItem[];
 }> {
   try {
-    // Set userId context for Cal.com tools
-    setCalToolsUserId(userId);
-
-    // Add user message to conversation
-    const newUserItem: AgentInputItem = {
-      role: 'user',
-      content: [
-        {
-          type: 'input_text',
-          text: userMessage,
-        },
-      ],
-    };
-
-    const fullHistory = [...conversationHistory, newUserItem];
-
-    // Configure runner with proper tracing
-    const conversationId = `${Date.now()}`;
-    const runnerConfig = createRunnerConfig(conversationId);
-    const runner = new Runner(runnerConfig);
-
-    // Run agent - try streaming first, fallback to chunked response
+    // Run agent with HoneyHive tracing - captures inputs/outputs automatically
     let accumulatedContent = '';
-    let updatedHistory = [...fullHistory];
+    let updatedHistory: AgentInputItem[] = [];
 
     try {
-      const daniel = createDanielAgent(userId);
-      const result = await runner.run(daniel, fullHistory);
+      // Get the HoneyHive tracer and use its trace method for proper context
+      const tracer = getHoneyHiveTracer();
+
+      // Create a traced version of the agent execution
+      const tracedExecution = async () => {
+        return executeAgentRun(userMessage, conversationHistory, userId);
+      };
+
+      // Use tracer.trace() if available, otherwise run directly
+      let executionResult: { result: any; fullHistory: AgentInputItem[] };
+      if (tracer) {
+        // Wrap with traceChain for proper span creation within session context
+        const tracedFn = tracer.traceChain(tracedExecution, {
+          eventName: 'daniel-agent-chat',
+        });
+        executionResult = await tracer.trace(tracedFn);
+      } else {
+        // Fallback when tracer not available (e.g., in tests)
+        executionResult = await tracedExecution();
+      }
+
+      const { result, fullHistory } = executionResult;
+      updatedHistory = [...fullHistory];
 
       // Check if result is an async iterable (streaming)
       if (
