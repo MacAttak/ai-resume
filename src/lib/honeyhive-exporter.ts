@@ -16,6 +16,8 @@ import {
   type Trace,
   type Span,
 } from '@openai/agents';
+// Import from sanitize directly to avoid circular dependency with logger -> instrumentation
+import { sanitizeLogData } from './sanitize';
 
 // Define span data types locally (these mirror the internal SDK types)
 // The SDK exports Span<T> as a generic but the specific SpanData types are internal
@@ -114,12 +116,10 @@ export class HoneyHiveTracingExporter implements TracingExporter {
   private sessionId: string | undefined;
   private apiKey: string;
   private project: string;
-  private verbose: boolean;
 
   constructor() {
     this.apiKey = process.env.HONEYHIVE_API_KEY || '';
     this.project = process.env.HONEYHIVE_PROJECT || '';
-    this.verbose = process.env.NODE_ENV === 'development';
   }
 
   /**
@@ -128,15 +128,23 @@ export class HoneyHiveTracingExporter implements TracingExporter {
    */
   setSessionId(sessionId: string) {
     this.sessionId = sessionId;
-    if (this.verbose) {
-      console.log(`[HoneyHive Exporter] Session ID set: ${sessionId}`);
-    }
+    console.log(`[HoneyHive Exporter] Session ID set: ${sessionId}`);
+  }
+
+  /**
+   * Get current session ID (for debugging)
+   */
+  getSessionId(): string | undefined {
+    return this.sessionId;
   }
 
   /**
    * Clear the session ID (called when session ends)
    */
   clearSessionId() {
+    console.log(
+      `[HoneyHive Exporter] Clearing session ID (was: ${this.sessionId})`
+    );
     this.sessionId = undefined;
   }
 
@@ -145,12 +153,20 @@ export class HoneyHiveTracingExporter implements TracingExporter {
    * Called by BatchTraceProcessor when spans are ready
    */
   async export(items: SpanOrTrace[], signal?: AbortSignal): Promise<void> {
+    console.log(
+      `[HoneyHive Exporter] export() called with ${items.length} items, sessionId: ${this.sessionId}`
+    );
+
+    // Log item types for debugging
+    const itemTypes = items.map((item) => item.type);
+    console.log(`[HoneyHive Exporter] Item types: ${JSON.stringify(itemTypes)}`);
+
     if (!this.sessionId) {
-      if (this.verbose) {
-        console.warn(
-          '[HoneyHive Exporter] No session ID set - skipping export'
-        );
-      }
+      console.warn(
+        '[HoneyHive Exporter] No session ID set - skipping export of',
+        items.length,
+        'items'
+      );
       return;
     }
 
@@ -165,12 +181,17 @@ export class HoneyHiveTracingExporter implements TracingExporter {
       for (const item of items) {
         // Skip trace objects - we already have a HoneyHive session for the root
         if (item.type === 'trace') {
+          console.log('[HoneyHive Exporter] Skipping trace object');
           continue;
         }
 
         // Process span - use any for SDK compatibility
         const span = item as Span<any>;
         const spanData = span.spanData as SpanData;
+
+        console.log(
+          `[HoneyHive Exporter] Processing span: type=${spanData.type}, traceId=${span.traceId}, spanId=${span.spanId}`
+        );
 
         // Map SDK span type to HoneyHive event type
         const eventType = this.mapSpanType(spanData.type);
@@ -198,7 +219,12 @@ export class HoneyHiveTracingExporter implements TracingExporter {
       }
 
       if (events.length > 0) {
+        console.log(
+          `[HoneyHive Exporter] Sending ${events.length} events to HoneyHive`
+        );
         await this.sendToHoneyHive(events, signal);
+      } else {
+        console.log('[HoneyHive Exporter] No events to send (all were traces)');
       }
     } catch (error) {
       console.error('[HoneyHive Exporter] Export failed:', error);
@@ -227,6 +253,7 @@ export class HoneyHiveTracingExporter implements TracingExporter {
 
   /**
    * Extract relevant data from span based on its type
+   * All inputs and outputs are sanitized to remove PII before sending to HoneyHive
    */
   private extractSpanData(spanData: SpanData): {
     name?: string;
@@ -241,8 +268,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
         const gen = spanData as GenerationSpanData;
         return {
           name: `${gen.model || 'llm'}-generation`,
-          inputs: { messages: gen.input },
-          outputs: { response: gen.output },
+          // Sanitize LLM inputs/outputs to remove any PII
+          inputs: sanitizeLogData({ messages: gen.input }),
+          outputs: sanitizeLogData({ response: gen.output }),
           config: { model: gen.model, ...gen.model_config },
           metrics: gen.usage
             ? {
@@ -258,8 +286,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
         const fn = spanData as FunctionSpanData;
         return {
           name: fn.name,
-          inputs: { input: fn.input },
-          outputs: { output: fn.output },
+          // Sanitize tool inputs/outputs
+          inputs: sanitizeLogData({ input: fn.input }),
+          outputs: sanitizeLogData({ output: fn.output }),
         };
       }
 
@@ -281,8 +310,13 @@ export class HoneyHiveTracingExporter implements TracingExporter {
         };
         return {
           name: 'response',
-          inputs: response._input ? { input: response._input } : {},
-          outputs: response._response ? { response: response._response } : {},
+          // Sanitize response inputs/outputs
+          inputs: response._input
+            ? sanitizeLogData({ input: response._input })
+            : {},
+          outputs: response._response
+            ? sanitizeLogData({ response: response._response })
+            : {},
           metadata: { response_id: response.response_id },
         };
       }
@@ -326,6 +360,10 @@ export class HoneyHiveTracingExporter implements TracingExporter {
     events: HoneyHiveEvent[],
     signal?: AbortSignal
   ): Promise<void> {
+    console.log(
+      `[HoneyHive Exporter] POST to HoneyHive API with ${events.length} events`
+    );
+
     const response = await fetch('https://api.honeyhive.ai/events/batch', {
       method: 'POST',
       headers: {
@@ -338,12 +376,15 @@ export class HoneyHiveTracingExporter implements TracingExporter {
 
     if (!response.ok) {
       const body = await response.text();
+      console.error(
+        `[HoneyHive Exporter] API error ${response.status}: ${body}`
+      );
       throw new Error(`HoneyHive API error ${response.status}: ${body}`);
     }
 
-    if (this.verbose) {
-      console.log(`[HoneyHive Exporter] Exported ${events.length} events`);
-    }
+    console.log(
+      `[HoneyHive Exporter] Successfully exported ${events.length} events`
+    );
   }
 }
 

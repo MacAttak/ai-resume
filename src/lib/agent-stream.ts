@@ -72,11 +72,13 @@ export async function* runDanielAgentStream(
 
     try {
       // Execute agent directly - tracing is now handled by the exporter
+      console.log('[HoneyHive] Starting agent execution...');
       const { result, fullHistory } = await executeAgentRun(
         userMessage,
         conversationHistory,
         userId
       );
+      console.log('[HoneyHive] Agent execution completed');
       updatedHistory = [...fullHistory];
 
       // Check if result is an async iterable (streaming)
@@ -138,7 +140,29 @@ export async function* runDanielAgentStream(
                 ...event.data.newItems.map((item: any) => item.rawItem || item),
               ];
             }
-            // Yield completion event immediately
+
+            // Force flush SDK traces before completing (streaming path)
+            console.log('[HoneyHive] Flushing traces (streaming complete)...');
+            try {
+              await getGlobalTraceProvider().forceFlush();
+              console.log('[HoneyHive] Flush completed');
+            } catch (flushError) {
+              console.warn('[HoneyHive] Failed to flush traces:', flushError);
+            }
+
+            // Enrich and flush HoneyHive session
+            if (tracer) {
+              await tracer.enrichSession({
+                outputs: { response: accumulatedContent },
+                metrics: { responseLength: accumulatedContent.length },
+              });
+              await tracer.flush();
+            }
+
+            // DON'T clear session yet - let any pending exports complete
+            // The session will be cleared on the next request
+
+            // Yield completion event
             yield {
               type: 'done',
               content: accumulatedContent,
@@ -205,10 +229,8 @@ export async function* runDanielAgentStream(
         ];
       }
     } catch (error) {
-      // Clear exporter session on error
-      if (exporter) {
-        exporter.clearSessionId();
-      }
+      // DON'T clear exporter session - might still have pending spans
+      console.error('[HoneyHive] Agent execution error:', error);
       yield {
         type: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -216,9 +238,11 @@ export async function* runDanielAgentStream(
       return;
     }
 
-    // Force flush SDK traces to HoneyHive before completing
+    // Force flush SDK traces to HoneyHive before completing (non-streaming path)
+    console.log('[HoneyHive] Flushing traces (non-streaming complete)...');
     try {
       await getGlobalTraceProvider().forceFlush();
+      console.log('[HoneyHive] Flush completed');
     } catch (flushError) {
       console.warn('[HoneyHive] Failed to flush traces:', flushError);
     }
@@ -232,10 +256,8 @@ export async function* runDanielAgentStream(
       await tracer.flush();
     }
 
-    // Clear exporter session after completion
-    if (exporter) {
-      exporter.clearSessionId();
-    }
+    // DON'T clear session yet - let any pending exports complete
+    // The session will be cleared on the next request
 
     // Return final state
     yield {
@@ -245,10 +267,7 @@ export async function* runDanielAgentStream(
     };
   } catch (error) {
     console.error('agent-stream error:', error);
-    // Clear exporter session on error
-    if (exporter) {
-      exporter.clearSessionId();
-    }
+    // DON'T clear exporter session on error either - might still have pending spans
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',
