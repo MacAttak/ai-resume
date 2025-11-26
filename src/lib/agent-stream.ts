@@ -1,8 +1,12 @@
-import { AgentInputItem, Runner, getGlobalTraceProvider } from '@openai/agents';
+import {
+  AgentInputItem,
+  Runner,
+  getGlobalTraceProvider,
+} from '@openai/agents';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
 import { setCalToolsUserId } from './cal-tools';
-import { getHoneyHiveTracer } from '@/instrumentation';
 import { getHoneyHiveExporter } from './honeyhive-exporter';
+import { startSession, updateSession } from './honeyhive-client';
 
 /**
  * Core agent execution function - runs the Daniel agent with conversation history
@@ -41,29 +45,29 @@ export async function* runDanielAgentStream(
   error?: string;
   updatedHistory?: AgentInputItem[];
 }> {
-  // Get HoneyHive tracer and exporter for this session
-  const tracer = getHoneyHiveTracer();
+  // Get HoneyHive exporter for this session
   const exporter = getHoneyHiveExporter();
+  let sessionId: string | null = null;
+  const sessionStartTime = Date.now();
 
   try {
-    // Start HoneyHive session and link exporter to it
-    let sessionId: string | null = null;
-    if (tracer) {
-      sessionId = await tracer.startSession();
-
-      // Link the exporter to this session so SDK traces go to HoneyHive
-      if (exporter && sessionId) {
-        exporter.setSessionId(sessionId);
-      }
-
-      // Enrich session with initial inputs
-      await tracer.enrichSession({
+    // Start HoneyHive session using REST API (no OTel conflicts)
+    if (exporter && process.env.HONEYHIVE_API_KEY) {
+      sessionId = await startSession({
+        sessionName: 'ai-resume-chat',
         inputs: {
           userMessage,
           conversationLength: conversationHistory.length,
         },
         metadata: { userId },
+        userProperties: userId ? { userId } : undefined,
       });
+
+      // Link the exporter to this session so SDK traces go to HoneyHive
+      if (sessionId) {
+        exporter.setSessionId(sessionId);
+        console.log(`[HoneyHive] Session started: ${sessionId}`);
+      }
     }
 
     // Run agent with HoneyHive tracing - captures inputs/outputs automatically
@@ -150,17 +154,14 @@ export async function* runDanielAgentStream(
               console.warn('[HoneyHive] Failed to flush traces:', flushError);
             }
 
-            // Enrich and flush HoneyHive session
-            if (tracer) {
-              await tracer.enrichSession({
+            // Update session with final outputs via REST API
+            if (sessionId) {
+              await updateSession(sessionId, {
                 outputs: { response: accumulatedContent },
                 metrics: { responseLength: accumulatedContent.length },
+                duration: Date.now() - sessionStartTime,
               });
-              await tracer.flush();
             }
-
-            // DON'T clear session yet - let any pending exports complete
-            // The session will be cleared on the next request
 
             // Yield completion event
             yield {
@@ -229,7 +230,6 @@ export async function* runDanielAgentStream(
         ];
       }
     } catch (error) {
-      // DON'T clear exporter session - might still have pending spans
       console.error('[HoneyHive] Agent execution error:', error);
       yield {
         type: 'error',
@@ -247,17 +247,14 @@ export async function* runDanielAgentStream(
       console.warn('[HoneyHive] Failed to flush traces:', flushError);
     }
 
-    // Enrich session with final outputs
-    if (tracer) {
-      await tracer.enrichSession({
+    // Update session with final outputs via REST API
+    if (sessionId) {
+      await updateSession(sessionId, {
         outputs: { response: accumulatedContent },
         metrics: { responseLength: accumulatedContent.length },
+        duration: Date.now() - sessionStartTime,
       });
-      await tracer.flush();
     }
-
-    // DON'T clear session yet - let any pending exports complete
-    // The session will be cleared on the next request
 
     // Return final state
     yield {
@@ -267,7 +264,6 @@ export async function* runDanielAgentStream(
     };
   } catch (error) {
     console.error('agent-stream error:', error);
-    // DON'T clear exporter session on error either - might still have pending spans
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',

@@ -5,44 +5,17 @@
  * compliance with privacy regulations (GDPR, CCPA) and prevent
  * accidental exposure of personally identifiable information.
  *
- * Logs are sent to both console and HoneyHive (if configured) for
- * centralized observability and analysis.
+ * Logs go to console only. HoneyHive tracing is handled separately
+ * via the custom exporter in honeyhive-exporter.ts.
  */
 
-import { getHoneyHiveTracer } from '@/instrumentation';
 // Import sanitizeLogData for internal use and re-export for consumers
 import { sanitizeLogData } from './sanitize';
 export { sanitizeLogData };
 
-/**
- * Send log event to HoneyHive for centralized observability
- */
-function sendToHoneyHive(
-  level: 'info' | 'warn' | 'error' | 'debug',
-  message: string,
-  data?: any
-) {
-  try {
-    const tracer = getHoneyHiveTracer();
-    if (!tracer) {
-      return; // HoneyHive not configured
-    }
-
-    // Create a log event using enrichSpan (synchronous)
-    tracer.enrichSpan({
-      eventName: `log.${level}`,
-      metadata: {
-        level,
-        message,
-        timestamp: new Date().toISOString(),
-        ...(data && { data: sanitizeLogData(data) }),
-      },
-    });
-  } catch (error) {
-    // Silently fail - don't break logging if HoneyHive is down
-    console.error('[HoneyHive] Failed to send log:', error);
-  }
-}
+// REMOVED: import { getHoneyHiveTracer } from '@/instrumentation';
+// REMOVED: sendToHoneyHive() function - was causing circular dependency issues
+//          and HoneyHive tracing is now handled via SDK exporter
 
 /**
  * Secure logger that automatically sanitizes PII before logging
@@ -51,21 +24,19 @@ export const logger = {
   /**
    * Log informational messages with automatic PII sanitization
    */
-  info: (message: string, data?: any) => {
+  info: (message: string, data?: unknown) => {
     if (data !== undefined) {
       console.log(message, sanitizeLogData(data));
     } else {
       console.log(message);
     }
-    // Send to HoneyHive (synchronous, non-blocking)
-    sendToHoneyHive('info', message, data);
   },
 
   /**
    * Log error messages
    * Note: Error stack traces are preserved for debugging
    */
-  error: (message: string, error?: any) => {
+  error: (message: string, error?: unknown) => {
     const sanitizedError =
       error instanceof Error
         ? {
@@ -75,43 +46,35 @@ export const logger = {
           }
         : sanitizeLogData(error);
 
-    if (error instanceof Error) {
-      console.error(message, sanitizedError);
-    } else if (error !== undefined) {
+    if (error !== undefined) {
       console.error(message, sanitizedError);
     } else {
       console.error(message);
     }
-    // Send to HoneyHive
-    sendToHoneyHive('error', message, sanitizedError);
   },
 
   /**
    * Log warning messages with automatic PII sanitization
    */
-  warn: (message: string, data?: any) => {
+  warn: (message: string, data?: unknown) => {
     if (data !== undefined) {
       console.warn(message, sanitizeLogData(data));
     } else {
       console.warn(message);
     }
-    // Send to HoneyHive
-    sendToHoneyHive('warn', message, data);
   },
 
   /**
    * Log debug messages with automatic PII sanitization
    * Only logs in non-production environments
    */
-  debug: (message: string, data?: any) => {
+  debug: (message: string, data?: unknown) => {
     if (process.env.NODE_ENV !== 'production') {
       if (data !== undefined) {
         console.debug(message, sanitizeLogData(data));
       } else {
         console.debug(message);
       }
-      // Send to HoneyHive in development too
-      sendToHoneyHive('debug', message, data);
     }
   },
 };

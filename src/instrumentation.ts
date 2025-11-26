@@ -1,57 +1,36 @@
 import { registerOTel } from '@vercel/otel';
-import { HoneyHiveTracer } from 'honeyhive';
-import {
-  setTracingDisabled,
-  startTraceExportLoop,
-} from '@openai/agents';
+import { setTracingDisabled, startTraceExportLoop } from '@openai/agents';
 import { initHoneyHiveExporter } from '@/lib/honeyhive-exporter';
 
-// Initialize HoneyHive tracer globally if API key is available
-let honeyHiveTracer: HoneyHiveTracer | null = null;
+// REMOVED: HoneyHiveTracer import - causes OTel conflicts via Traceloop
+// REMOVED: honeyHiveTracer variable
+// REMOVED: getHoneyHiveTracer() export
 
 export async function register() {
-  // Register Vercel OpenTelemetry
+  // Keep Vercel OpenTelemetry for HTTP/request tracing
   registerOTel({
     serviceName: 'ai-resume',
   });
 
-  // Initialize HoneyHive tracer for production tracing
+  // Initialize HoneyHive via REST API (no OTel conflicts)
   if (process.env.HONEYHIVE_API_KEY && process.env.HONEYHIVE_PROJECT) {
     try {
-      honeyHiveTracer = await HoneyHiveTracer.init({
-        apiKey: process.env.HONEYHIVE_API_KEY,
-        project: process.env.HONEYHIVE_PROJECT,
-        serverUrl: 'https://api.honeyhive.ai',
-        source: process.env.VERCEL_ENV || 'development',
-        sessionName: 'ai-resume-chat',
-        verbose: process.env.NODE_ENV === 'development',
-      });
-
-      // Enable @openai/agents SDK tracing (disabled by default in some environments)
+      // Enable @openai/agents SDK tracing
       setTracingDisabled(false);
 
-      // Initialize custom exporter to bridge @openai/agents traces to HoneyHive
-      // This intercepts SDK internal traces and forwards them to HoneyHive API
+      // Initialize custom exporter (bridges SDK traces to HoneyHive REST API)
       initHoneyHiveExporter();
 
-      // Start the trace export loop (ensures BatchTraceProcessor exports spans)
+      // Start the trace export loop
       startTraceExportLoop();
 
-      console.log('[HoneyHive] Tracer and exporter initialized successfully');
+      console.log('[HoneyHive] REST-based exporter initialized successfully');
     } catch (error) {
-      console.error('[HoneyHive] Failed to initialize tracer:', error);
+      console.error('[HoneyHive] Failed to initialize exporter:', error);
     }
   } else {
     console.log(
-      '[HoneyHive] Tracer not initialized - missing HONEYHIVE_API_KEY or HONEYHIVE_PROJECT'
+      '[HoneyHive] Exporter not initialized - missing HONEYHIVE_API_KEY or HONEYHIVE_PROJECT'
     );
   }
-}
-
-/**
- * Get the HoneyHive tracer instance
- * @returns HoneyHiveTracer instance or null if not initialized
- */
-export function getHoneyHiveTracer(): HoneyHiveTracer | null {
-  return honeyHiveTracer;
 }
