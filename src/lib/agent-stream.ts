@@ -2,11 +2,39 @@ import {
   AgentInputItem,
   Runner,
   getGlobalTraceProvider,
+  setTracingDisabled,
+  startTraceExportLoop,
 } from '@openai/agents';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
 import { setCalToolsUserId } from './cal-tools';
-import { getHoneyHiveExporter } from './honeyhive-exporter';
+import {
+  getHoneyHiveExporter,
+  initHoneyHiveExporter,
+} from './honeyhive-exporter';
 import { startSession, updateSession } from './honeyhive-client';
+
+// Track if we've initialized the exporter (lazy init to avoid instrumentation.ts issues)
+let honeyHiveInitialized = false;
+
+/**
+ * Ensure HoneyHive exporter is initialized (lazy init)
+ * This is a fallback in case instrumentation.ts doesn't run properly
+ */
+function ensureHoneyHiveInitialized() {
+  if (!honeyHiveInitialized && process.env.HONEYHIVE_API_KEY) {
+    console.log('[HoneyHive] Lazy initialization starting...');
+    try {
+      setTracingDisabled(false);
+      initHoneyHiveExporter();
+      startTraceExportLoop();
+      honeyHiveInitialized = true;
+      console.log('[HoneyHive] Lazy initialization completed');
+    } catch (error) {
+      console.error('[HoneyHive] Lazy initialization failed:', error);
+    }
+  }
+  return getHoneyHiveExporter();
+}
 
 /**
  * Core agent execution function - runs the Daniel agent with conversation history
@@ -45,14 +73,25 @@ export async function* runDanielAgentStream(
   error?: string;
   updatedHistory?: AgentInputItem[];
 }> {
-  // Get HoneyHive exporter for this session
-  const exporter = getHoneyHiveExporter();
+  // Ensure HoneyHive exporter is initialized (lazy init fallback)
+  const exporter = ensureHoneyHiveInitialized();
   let sessionId: string | null = null;
   const sessionStartTime = Date.now();
+
+  // Debug logging (safe - only logs boolean/existence, never actual values)
+  console.log(
+    '[HoneyHive] Status:',
+    JSON.stringify({
+      exporterReady: !!exporter,
+      apiKeyConfigured: !!process.env.HONEYHIVE_API_KEY,
+      projectConfigured: !!process.env.HONEYHIVE_PROJECT,
+    })
+  );
 
   try {
     // Start HoneyHive session using REST API (no OTel conflicts)
     if (exporter && process.env.HONEYHIVE_API_KEY) {
+      console.log('[HoneyHive] Starting session via REST API...');
       sessionId = await startSession({
         sessionName: 'ai-resume-chat',
         inputs: {

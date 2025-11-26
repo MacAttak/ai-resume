@@ -33,8 +33,21 @@ export interface SessionConfig {
 export async function startSession(
   config: SessionConfig = {}
 ): Promise<string | null> {
+  // Debug logging (safe - only logs boolean/existence, never actual secrets)
+  console.log(
+    '[HoneyHive Client] startSession:',
+    JSON.stringify({
+      apiKeyConfigured: !!process.env.HONEYHIVE_API_KEY,
+      projectConfigured: !!process.env.HONEYHIVE_PROJECT,
+    })
+  );
+
   const hh = getHoneyHiveClient();
-  if (!hh || !process.env.HONEYHIVE_PROJECT) return null;
+
+  if (!hh || !process.env.HONEYHIVE_PROJECT) {
+    console.log('[HoneyHive Client] Aborting - missing client or project');
+    return null;
+  }
 
   try {
     const response = await hh.session.startSession({
@@ -48,9 +61,10 @@ export async function startSession(
         startTime: Date.now(),
       },
     });
+    console.log('[HoneyHive Client] Session created:', response.sessionId);
     return response.sessionId || null;
   } catch (error) {
-    console.error('[HoneyHive] Failed to start session:', error);
+    console.error('[HoneyHive Client] Failed to start session:', error);
     return null;
   }
 }

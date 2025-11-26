@@ -1,3 +1,6 @@
+// Debug: Confirm instrumentation file is being loaded
+console.log('[Instrumentation] File loaded at:', new Date().toISOString());
+
 import { registerOTel } from '@vercel/otel';
 import { setTracingDisabled, startTraceExportLoop } from '@openai/agents';
 import { initHoneyHiveExporter } from '@/lib/honeyhive-exporter';
@@ -7,6 +10,7 @@ import { initHoneyHiveExporter } from '@/lib/honeyhive-exporter';
 // REMOVED: getHoneyHiveTracer() export
 
 export async function register() {
+  console.log('[Instrumentation] register() called');
   // Keep Vercel OpenTelemetry for HTTP/request tracing
   registerOTel({
     serviceName: 'ai-resume',

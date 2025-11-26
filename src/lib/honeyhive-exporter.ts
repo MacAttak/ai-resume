@@ -159,7 +159,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
 
     // Log item types for debugging
     const itemTypes = items.map((item) => item.type);
-    console.log(`[HoneyHive Exporter] Item types: ${JSON.stringify(itemTypes)}`);
+    console.log(
+      `[HoneyHive Exporter] Item types: ${JSON.stringify(itemTypes)}`
+    );
 
     if (!this.sessionId) {
       console.warn(
