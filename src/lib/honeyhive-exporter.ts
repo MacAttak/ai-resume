@@ -92,21 +92,25 @@ interface TracingExporter {
 
 /**
  * HoneyHive event structure for batch API
+ * Based on CreateEventRequest schema from honeyhive SDK
  */
 interface HoneyHiveEvent {
   project: string;
-  session_id: string;
-  parent_id: string;
-  event_type: string;
+  source: string;
   event_name: string;
-  inputs: Record<string, unknown>;
-  outputs: Record<string, unknown>;
+  event_type: 'model' | 'tool' | 'chain';
+  event_id?: string;
+  session_id?: string;
+  parent_id?: string;
   config: Record<string, unknown>;
-  metrics: Record<string, unknown>;
-  start_time: string | null;
-  end_time: string | null;
+  inputs: Record<string, unknown>;
+  outputs?: Record<string, unknown>;
   error?: string;
-  metadata: Record<string, unknown>;
+  start_time?: number; // UTC timestamp in milliseconds
+  end_time?: number; // UTC timestamp in milliseconds
+  duration: number; // Duration in milliseconds
+  metadata?: Record<string, unknown>;
+  metrics?: Record<string, unknown>;
 }
 
 /**
@@ -196,27 +200,42 @@ export class HoneyHiveTracingExporter implements TracingExporter {
         );
 
         // Map SDK span type to HoneyHive event type
-        const eventType = this.mapSpanType(spanData.type);
+        const eventType = this.mapSpanType(spanData.type) as
+          | 'model'
+          | 'tool'
+          | 'chain';
         const eventData = this.extractSpanData(spanData);
+
+        // Parse timestamps - SDK provides ISO strings, API needs milliseconds
+        const startTime = span.startedAt
+          ? new Date(span.startedAt).getTime()
+          : Date.now();
+        const endTime = span.endedAt
+          ? new Date(span.endedAt).getTime()
+          : Date.now();
+        const duration = endTime - startTime;
 
         events.push({
           project: this.project,
+          source: process.env.VERCEL_ENV || 'development',
+          event_name: eventData.name || spanData.type,
+          event_type: eventType,
+          event_id: span.spanId,
           session_id: this.sessionId,
           parent_id: span.parentId || this.sessionId,
-          event_type: eventType,
-          event_name: eventData.name || spanData.type,
-          inputs: eventData.inputs || {},
-          outputs: eventData.outputs || {},
           config: eventData.config || {},
-          metrics: eventData.metrics || {},
-          start_time: span.startedAt,
-          end_time: span.endedAt,
+          inputs: eventData.inputs || {},
+          outputs: eventData.outputs,
           error: span.error?.message,
+          start_time: startTime,
+          end_time: endTime,
+          duration: duration,
           metadata: {
             trace_id: span.traceId,
-            span_id: span.spanId,
             span_type: spanData.type,
+            ...eventData.metadata,
           },
+          metrics: eventData.metrics,
         });
       }
 
