@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
             let fullResponse = '';
             let finalHistory: any[] = [];
 
-            // Stream agent response (HoneyHive tracing is handled in agent-stream.ts via traceFunction)
+            // Stream agent response (HoneyHive tracing is handled in agent-stream.ts via custom exporter)
             for await (const event of runDanielAgentStream(
               message,
               agentHistory,

@@ -39,8 +39,8 @@ vi.mock('@clerk/nextjs', () => ({
 }));
 
 // Mock HoneyHive instrumentation (prevents OpenTelemetry errors in tests)
+// Note: getHoneyHiveTracer was removed - now using REST client instead
 vi.mock('@/instrumentation', () => ({
-  getHoneyHiveTracer: () => null,
   register: vi.fn(),
 }));
 
