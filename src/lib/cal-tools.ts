@@ -210,7 +210,9 @@ function formatTimeRange(start: Date, end: Date, timeZone: string): string {
 export const getCurrentDateTime = tool({
   name: 'get_current_datetime',
   description:
-    "Get the current date and time in Sydney, Australia timezone. Use this to know what 'today' is before checking availability or booking meetings.",
+    'Get the current date and time in Sydney, Australia timezone. ' +
+    'ONLY USE when actively processing a meeting booking request that the user explicitly initiated. ' +
+    'DO NOT USE for general conversation, career questions, or hypothetical scheduling discussions.',
   parameters: z.object({}),
   async execute() {
     const now = new Date();
@@ -242,7 +244,10 @@ export const getCurrentDateTime = tool({
 export const checkMeetingAvailability = tool({
   name: 'check_meeting_availability',
   description:
-    "Check Daniel McCarthy's available time slots for 15-minute meetings. By default checks next 2 weeks starting 48 hours from now (ensures 24hr minimum notice). Only provide dates if user requests specific time range.",
+    "Check Daniel McCarthy's available time slots for 15-minute meetings. " +
+    'ONLY USE when the user has EXPLICITLY asked to book, schedule, or arrange a meeting with Daniel. ' +
+    "DO NOT USE for: questions about Daniel's career, experience, general availability inquiries, or any conversational questions. " +
+    'By default checks next 2 weeks starting 48 hours from now.',
   parameters: z.object({
     startDate: z
       .string()
@@ -336,7 +341,10 @@ export const checkMeetingAvailability = tool({
 export const bookMeeting = tool({
   name: 'book_meeting',
   description:
-    'Book a 15-minute meeting with Daniel McCarthy at a specific date and time. CRITICAL: (1) Always confirm the attendee name and email with the user before booking. (2) Use the EXACT UTC timestamp from the availability results (e.g., "2025-11-24T01:00:00.000Z"). Do NOT convert times - use the raw UTC timestamp directly.',
+    'Book a 15-minute meeting with Daniel McCarthy at a specific date and time. ' +
+    'PREREQUISITE: Only invoke AFTER (1) user explicitly requested a meeting, (2) you called check_meeting_availability, (3) you called get_user_details, and (4) user selected a specific time. ' +
+    'DO NOT invoke unless ALL prerequisites are met. ' +
+    'Use the EXACT UTC timestamp from the availability results (e.g., "2025-11-24T01:00:00.000Z"). Do NOT convert times.',
   parameters: z.object({
     datetime: z
       .string()
@@ -484,7 +492,10 @@ export const bookMeeting = tool({
 export const getUserDetails = tool({
   name: 'get_user_details',
   description:
-    "Get the authenticated user's name and email from Clerk. Use this before booking a meeting to pre-fill attendee information. Always ask the user to CONFIRM these details before proceeding with booking.",
+    "Get the authenticated user's name and email from Clerk for meeting booking. " +
+    'ONLY USE when the user has explicitly requested to book a meeting AND you are starting the booking workflow. ' +
+    'DO NOT USE preemptively or for general conversation. ' +
+    'After retrieval, ask the user to CONFIRM these details before booking.',
   parameters: z.object({}),
   async execute() {
     try {
