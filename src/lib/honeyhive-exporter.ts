@@ -18,6 +18,7 @@ import {
 } from '@openai/agents';
 // Import from sanitize directly to avoid circular dependency with logger -> instrumentation
 import { sanitizeLogData } from './sanitize';
+import { honeyhiveLogger } from './logger';
 
 // Define span data types locally (these mirror the internal SDK types)
 // The SDK exports Span<T> as a generic but the specific SpanData types are internal
@@ -132,7 +133,7 @@ export class HoneyHiveTracingExporter implements TracingExporter {
    */
   setSessionId(sessionId: string) {
     this.sessionId = sessionId;
-    console.log(`[HoneyHive Exporter] Session ID set: ${sessionId}`);
+    honeyhiveLogger.debug('Session ID set', { sessionId });
   }
 
   /**
@@ -146,9 +147,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
    * Clear the session ID (called when session ends)
    */
   clearSessionId() {
-    console.log(
-      `[HoneyHive Exporter] Clearing session ID (was: ${this.sessionId})`
-    );
+    honeyhiveLogger.debug('Clearing session ID', {
+      previousSessionId: this.sessionId,
+    });
     this.sessionId = undefined;
   }
 
@@ -157,27 +158,22 @@ export class HoneyHiveTracingExporter implements TracingExporter {
    * Called by BatchTraceProcessor when spans are ready
    */
   async export(items: SpanOrTrace[], signal?: AbortSignal): Promise<void> {
-    console.log(
-      `[HoneyHive Exporter] export() called with ${items.length} items, sessionId: ${this.sessionId}`
-    );
-
-    // Log item types for debugging
     const itemTypes = items.map((item) => item.type);
-    console.log(
-      `[HoneyHive Exporter] Item types: ${JSON.stringify(itemTypes)}`
-    );
+    honeyhiveLogger.debug('Export called', {
+      itemCount: items.length,
+      sessionId: this.sessionId,
+      itemTypes,
+    });
 
     if (!this.sessionId) {
-      console.warn(
-        '[HoneyHive Exporter] No session ID set - skipping export of',
-        items.length,
-        'items'
-      );
+      honeyhiveLogger.warn('No session ID set - skipping export', {
+        itemCount: items.length,
+      });
       return;
     }
 
     if (!this.apiKey) {
-      console.warn('[HoneyHive Exporter] No API key configured');
+      honeyhiveLogger.warn('No API key configured');
       return;
     }
 
@@ -187,7 +183,7 @@ export class HoneyHiveTracingExporter implements TracingExporter {
       for (const item of items) {
         // Skip trace objects - we already have a HoneyHive session for the root
         if (item.type === 'trace') {
-          console.log('[HoneyHive Exporter] Skipping trace object');
+          honeyhiveLogger.debug('Skipping trace object');
           continue;
         }
 
@@ -195,9 +191,11 @@ export class HoneyHiveTracingExporter implements TracingExporter {
         const span = item as Span<any>;
         const spanData = span.spanData as SpanData;
 
-        console.log(
-          `[HoneyHive Exporter] Processing span: type=${spanData.type}, traceId=${span.traceId}, spanId=${span.spanId}`
-        );
+        honeyhiveLogger.debug('Processing span', {
+          type: spanData.type,
+          traceId: span.traceId,
+          spanId: span.spanId,
+        });
 
         // Map SDK span type to HoneyHive event type
         const eventType = this.mapSpanType(spanData.type) as
@@ -240,15 +238,15 @@ export class HoneyHiveTracingExporter implements TracingExporter {
       }
 
       if (events.length > 0) {
-        console.log(
-          `[HoneyHive Exporter] Sending ${events.length} events to HoneyHive`
-        );
+        honeyhiveLogger.debug('Sending events to HoneyHive', {
+          eventCount: events.length,
+        });
         await this.sendToHoneyHive(events, signal);
       } else {
-        console.log('[HoneyHive Exporter] No events to send (all were traces)');
+        honeyhiveLogger.debug('No events to send (all were traces)');
       }
     } catch (error) {
-      console.error('[HoneyHive Exporter] Export failed:', error);
+      honeyhiveLogger.error('Export failed', error);
     }
   }
 
@@ -381,9 +379,19 @@ export class HoneyHiveTracingExporter implements TracingExporter {
     events: HoneyHiveEvent[],
     signal?: AbortSignal
   ): Promise<void> {
-    console.log(
-      `[HoneyHive Exporter] POST to HoneyHive API with ${events.length} events`
-    );
+    honeyhiveLogger.debug('POST to HoneyHive API', {
+      eventCount: events.length,
+    });
+
+    // Debug: log sample event payload in development/preview for diagnostics
+    // Enable in preview to diagnose 500 errors from HoneyHive API
+    if (
+      (process.env.NODE_ENV !== 'production' ||
+        process.env.VERCEL_ENV === 'preview') &&
+      events.length > 0
+    ) {
+      honeyhiveLogger.debug('Sample event payload', events[0]);
+    }
 
     const response = await fetch('https://api.honeyhive.ai/events/batch', {
       method: 'POST',
@@ -397,15 +405,17 @@ export class HoneyHiveTracingExporter implements TracingExporter {
 
     if (!response.ok) {
       const body = await response.text();
-      console.error(
-        `[HoneyHive Exporter] API error ${response.status}: ${body}`
-      );
+      honeyhiveLogger.error('API error', {
+        status: response.status,
+        body,
+        eventCount: events.length,
+      });
       throw new Error(`HoneyHive API error ${response.status}: ${body}`);
     }
 
-    console.log(
-      `[HoneyHive Exporter] Successfully exported ${events.length} events`
-    );
+    honeyhiveLogger.info('Successfully exported events', {
+      eventCount: events.length,
+    });
   }
 }
 
@@ -419,13 +429,12 @@ let initialized = false;
  */
 export function initHoneyHiveExporter(): HoneyHiveTracingExporter | null {
   if (initialized) {
+    honeyhiveLogger.debug('Already initialized, returning existing exporter');
     return exporter;
   }
 
   if (!process.env.HONEYHIVE_API_KEY) {
-    console.log(
-      '[HoneyHive Exporter] Not initialized - missing HONEYHIVE_API_KEY'
-    );
+    honeyhiveLogger.warn('Not initialized - missing HONEYHIVE_API_KEY');
     return null;
   }
 
@@ -441,7 +450,7 @@ export function initHoneyHiveExporter(): HoneyHiveTracingExporter | null {
   );
 
   initialized = true;
-  console.log('[HoneyHive Exporter] Initialized and registered');
+  honeyhiveLogger.info('Exporter initialized and registered');
 
   return exporter;
 }

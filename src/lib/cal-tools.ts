@@ -12,7 +12,7 @@ import {
   isAtLeast24HoursAway,
   getHoursUntil,
 } from './cal-client';
-import { logger } from './logger';
+import { calLogger } from './logger';
 
 const DEFAULT_TIMEZONE = 'Australia/Sydney';
 
@@ -165,7 +165,7 @@ function formatAvailableSlots(
   response += '\nWhich day and time works best for you?';
 
   // For debugging - include raw slot mapping
-  logger.debug('Formatted availability with UTC mapping:', {
+  calLogger.debug('Formatted availability with UTC mapping', {
     formatted: formattedDays,
     slotsByLocalDate: Object.fromEntries(
       Object.entries(slotsByLocalDate).map(([date, times]) => [
@@ -300,7 +300,7 @@ export const checkMeetingAvailability = tool({
       const eventTypeId = getEventTypeId('15min');
 
       // Fetch available slots - Cal.com API expects ISO 8601 timestamps in UTC
-      console.log('Requesting Cal.com slots with params:', {
+      calLogger.debug('Requesting Cal.com slots', {
         eventTypeId,
         start: startTime.toISOString(),
         end: endTime.toISOString(),
@@ -314,7 +314,7 @@ export const checkMeetingAvailability = tool({
         timeZone: finalTimezone,
       });
 
-      console.log('Cal.com slots response:', JSON.stringify(response, null, 2));
+      calLogger.debug('Cal.com slots response', { slots: response });
 
       if (response.status !== 'success') {
         return 'I encountered an issue checking availability. Please try again or contact support.';
@@ -329,7 +329,7 @@ export const checkMeetingAvailability = tool({
 
       return formatAvailableSlots(response.data.slots, finalTimezone);
     } catch (error) {
-      console.error('check_meeting_availability error:', error);
+      calLogger.error('check_meeting_availability error', error);
       return `I encountered an error while checking availability: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`;
     }
   },
@@ -378,7 +378,7 @@ export const bookMeeting = tool({
     try {
       // STRICT VALIDATION: Require exact UTC format with 'Z' suffix
       if (!datetime.endsWith('Z')) {
-        console.error('Invalid datetime format - must end with Z:', {
+        calLogger.warn('Invalid datetime format - must end with Z', {
           provided: datetime,
           expected: 'UTC format like "2025-11-24T01:00:00.000Z"',
         });
@@ -395,7 +395,7 @@ export const bookMeeting = tool({
       // Normalize to ensure consistent format
       const utcDatetime = parsedDate.toISOString();
 
-      console.log('Validating booking datetime:', {
+      calLogger.debug('Validating booking datetime', {
         provided: datetime,
         normalized: utcDatetime,
         isExactMatch: datetime === utcDatetime,
@@ -413,7 +413,7 @@ export const bookMeeting = tool({
       // Re-check availability before booking to prevent race conditions
       // Query a 1-hour window (±30 minutes) around the target slot
       // Note: Cal.com's API requires reasonable time windows (hours/days, not milliseconds)
-      console.log('Re-checking availability before booking:', {
+      calLogger.debug('Re-checking availability before booking', {
         datetime: utcDatetime,
         eventTypeId,
       });
@@ -434,7 +434,7 @@ export const bookMeeting = tool({
         availabilityCheck.data?.slots || {}
       ).some((slots) => slots.some((slot) => slot.time === utcDatetime));
 
-      console.log('Availability re-check result:', {
+      calLogger.debug('Availability re-check result', {
         slotsFound: Object.keys(availabilityCheck.data?.slots || {}).length,
         targetSlot: utcDatetime,
         isStillAvailable,
@@ -447,7 +447,8 @@ export const bookMeeting = tool({
         return `The requested time slot (${formatDateTime(utcDatetime, attendeeTimezone)}) is no longer available. It may have just been booked. Please check availability again and choose a different time.`;
       }
 
-      console.log('Creating booking with params:', {
+      // Log booking params - sanitized by calLogger automatically
+      calLogger.debug('Creating booking', {
         start: utcDatetime,
         eventTypeId,
         attendeeName,
@@ -478,9 +479,11 @@ export const bookMeeting = tool({
       const booking = response.data;
       const formattedTime = formatDateTime(booking.start, attendeeTimezone);
 
+      calLogger.info('Meeting booked successfully', { bookingId: booking.uid });
+
       return `✅ Meeting successfully booked!\n\n**Details:**\n• Date & Time: ${formattedTime}\n• Duration: 15 minutes\n• Attendee: ${attendeeName} (${attendeeEmail})\n• Booking ID: ${booking.uid}\n\nYou'll receive a confirmation email at ${attendeeEmail} with calendar invite and meeting details. Looking forward to speaking with you!`;
     } catch (error) {
-      console.error('book_meeting error:', error);
+      calLogger.error('book_meeting error', error);
       return `I encountered an error while booking the meeting: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or contact support.`;
     }
   },
@@ -518,6 +521,11 @@ export const getUserDetails = tool({
         user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
           ?.emailAddress || 'No email found';
 
+      calLogger.debug('Retrieved user details', {
+        hasName: !!user.fullName || !!user.firstName,
+        hasEmail: !!user.primaryEmailAddressId,
+      });
+
       return JSON.stringify({
         name,
         email,
@@ -525,7 +533,7 @@ export const getUserDetails = tool({
         hasEmail: !!user.primaryEmailAddressId,
       });
     } catch (error) {
-      console.error('get_user_details error:', error);
+      calLogger.error('get_user_details error', error);
       return JSON.stringify({
         name: '',
         email: '',

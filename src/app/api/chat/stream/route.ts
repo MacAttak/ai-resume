@@ -4,6 +4,7 @@ import { runDanielAgentStream } from '@/lib/agent-stream';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getConversation, addMessage } from '@/lib/conversation';
 import { trace } from '@opentelemetry/api';
+import { apiLogger } from '@/lib/logger';
 
 export const runtime = 'nodejs'; // Agent SDK requires Node runtime
 export const maxDuration = 30; // 30 second timeout for agent processing
@@ -173,7 +174,7 @@ export async function POST(req: NextRequest) {
               }
             }
           } catch (error) {
-            console.error('api:chat:stream error:', error);
+            apiLogger.error('Chat stream error', error);
             const errorData = JSON.stringify({
               type: 'error',
               error:
@@ -198,7 +199,7 @@ export async function POST(req: NextRequest) {
         },
       });
     } catch (error) {
-      console.error('api:chat error:', error);
+      apiLogger.error('Chat API error', error);
       span.recordException(error as Error);
       span.setStatus({ code: 2 });
       span.end();

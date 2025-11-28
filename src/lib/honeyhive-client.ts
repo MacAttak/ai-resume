@@ -6,6 +6,7 @@
  */
 
 import { HoneyHive } from 'honeyhive';
+import { honeyhiveLogger } from './logger';
 
 let client: HoneyHive | null = null;
 
@@ -33,19 +34,15 @@ export interface SessionConfig {
 export async function startSession(
   config: SessionConfig = {}
 ): Promise<string | null> {
-  // Debug logging (safe - only logs boolean/existence, never actual secrets)
-  console.log(
-    '[HoneyHive Client] startSession:',
-    JSON.stringify({
-      apiKeyConfigured: !!process.env.HONEYHIVE_API_KEY,
-      projectConfigured: !!process.env.HONEYHIVE_PROJECT,
-    })
-  );
+  honeyhiveLogger.debug('Starting session', {
+    apiKeyConfigured: !!process.env.HONEYHIVE_API_KEY,
+    projectConfigured: !!process.env.HONEYHIVE_PROJECT,
+  });
 
   const hh = getHoneyHiveClient();
 
   if (!hh || !process.env.HONEYHIVE_PROJECT) {
-    console.log('[HoneyHive Client] Aborting - missing client or project');
+    honeyhiveLogger.warn('Aborting - missing client or project');
     return null;
   }
 
@@ -61,10 +58,10 @@ export async function startSession(
         startTime: Date.now(),
       },
     });
-    console.log('[HoneyHive Client] Session created:', response.sessionId);
+    honeyhiveLogger.info('Session created', { sessionId: response.sessionId });
     return response.sessionId || null;
   } catch (error) {
-    console.error('[HoneyHive Client] Failed to start session:', error);
+    honeyhiveLogger.error('Failed to start session', error);
     return null;
   }
 }
@@ -93,9 +90,10 @@ export async function updateSession(
       metadata: updates.metadata,
       duration: updates.duration,
     });
+    honeyhiveLogger.debug('Session updated', { sessionId });
     return true;
   } catch (error) {
-    console.error('[HoneyHive] Failed to update session:', error);
+    honeyhiveLogger.error('Failed to update session', error);
     return false;
   }
 }
