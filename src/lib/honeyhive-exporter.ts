@@ -383,8 +383,13 @@ export class HoneyHiveTracingExporter implements TracingExporter {
       eventCount: events.length,
     });
 
-    // Debug: log sample event payload in development for diagnostics
-    if (process.env.NODE_ENV !== 'production' && events.length > 0) {
+    // Debug: log sample event payload in development/preview for diagnostics
+    // Enable in preview to diagnose 500 errors from HoneyHive API
+    if (
+      (process.env.NODE_ENV !== 'production' ||
+        process.env.VERCEL_ENV === 'preview') &&
+      events.length > 0
+    ) {
       honeyhiveLogger.debug('Sample event payload', events[0]);
     }
 

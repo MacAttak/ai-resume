@@ -1,51 +1,9 @@
-import {
-  AgentInputItem,
-  Runner,
-  getGlobalTraceProvider,
-  setTracingDisabled,
-  startTraceExportLoop,
-} from '@openai/agents';
+import { AgentInputItem, Runner, getGlobalTraceProvider } from '@openai/agents';
 import { createDanielAgent, createRunnerConfig } from './agent-config';
 import { setCalToolsUserId } from './cal-tools';
-import {
-  getHoneyHiveExporter,
-  initHoneyHiveExporter,
-} from './honeyhive-exporter';
+import { getHoneyHiveExporter } from './honeyhive-exporter';
 import { startSession, updateSession } from './honeyhive-client';
 import { honeyhiveLogger } from './logger';
-
-// Track if we've done lazy initialization (separate from instrumentation.ts init)
-let lazyInitAttempted = false;
-
-/**
- * Ensure HoneyHive exporter is initialized (defensive lazy init)
- * First checks if exporter already exists (from instrumentation.ts),
- * only initializes if instrumentation.ts didn't run.
- */
-function ensureHoneyHiveInitialized() {
-  // First, check if exporter already exists (from instrumentation.ts)
-  const existingExporter = getHoneyHiveExporter();
-  if (existingExporter) {
-    return existingExporter; // Already initialized, don't re-init
-  }
-
-  // Only lazy init once, and only if instrumentation.ts didn't run
-  if (!lazyInitAttempted && process.env.HONEYHIVE_API_KEY) {
-    lazyInitAttempted = true;
-    honeyhiveLogger.debug(
-      'Lazy initialization starting (instrumentation.ts did not run)'
-    );
-    try {
-      setTracingDisabled(false);
-      initHoneyHiveExporter();
-      startTraceExportLoop();
-      honeyhiveLogger.info('Lazy initialization completed');
-    } catch (error) {
-      honeyhiveLogger.error('Lazy initialization failed', error);
-    }
-  }
-  return getHoneyHiveExporter();
-}
 
 /**
  * Core agent execution function - runs the Daniel agent with conversation history
@@ -84,8 +42,8 @@ export async function* runDanielAgentStream(
   error?: string;
   updatedHistory?: AgentInputItem[];
 }> {
-  // Ensure HoneyHive exporter is initialized (lazy init fallback)
-  const exporter = ensureHoneyHiveInitialized();
+  // Get the HoneyHive exporter (initialized by instrumentation.ts)
+  const exporter = getHoneyHiveExporter();
   let sessionId: string | null = null;
   const sessionStartTime = Date.now();
 

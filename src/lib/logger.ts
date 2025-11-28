@@ -28,8 +28,11 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   error: 3,
 };
 
+// Enable debug logging in development and preview (for diagnostics)
 const MIN_LOG_LEVEL: LogLevel =
-  process.env.NODE_ENV === 'production' ? 'info' : 'debug';
+  process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV !== 'preview'
+    ? 'info'
+    : 'debug';
 
 function shouldLog(level: LogLevel): boolean {
   return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[MIN_LOG_LEVEL];
