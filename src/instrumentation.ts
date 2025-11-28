@@ -1,16 +1,11 @@
-// Debug: Confirm instrumentation file is being loaded
-console.log('[Instrumentation] File loaded at:', new Date().toISOString());
-
 import { registerOTel } from '@vercel/otel';
 import { setTracingDisabled, startTraceExportLoop } from '@openai/agents';
 import { initHoneyHiveExporter } from '@/lib/honeyhive-exporter';
-
-// REMOVED: HoneyHiveTracer import - causes OTel conflicts via Traceloop
-// REMOVED: honeyHiveTracer variable
-// REMOVED: getHoneyHiveTracer() export
+import { honeyhiveLogger, logger } from '@/lib/logger';
 
 export async function register() {
-  console.log('[Instrumentation] register() called');
+  logger.info('Instrumentation register() called');
+
   // Keep Vercel OpenTelemetry for HTTP/request tracing
   registerOTel({
     serviceName: 'ai-resume',
@@ -28,13 +23,11 @@ export async function register() {
       // Start the trace export loop
       startTraceExportLoop();
 
-      console.log('[HoneyHive] REST-based exporter initialized successfully');
+      honeyhiveLogger.info('REST-based exporter initialized successfully');
     } catch (error) {
-      console.error('[HoneyHive] Failed to initialize exporter:', error);
+      honeyhiveLogger.error('Failed to initialize exporter', error);
     }
   } else {
-    console.log(
-      '[HoneyHive] Exporter not initialized - missing HONEYHIVE_API_KEY or HONEYHIVE_PROJECT'
-    );
+    honeyhiveLogger.warn('Exporter not initialized - missing HONEYHIVE_API_KEY or HONEYHIVE_PROJECT');
   }
 }

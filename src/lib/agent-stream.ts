@@ -12,25 +12,34 @@ import {
   initHoneyHiveExporter,
 } from './honeyhive-exporter';
 import { startSession, updateSession } from './honeyhive-client';
+import { honeyhiveLogger } from './logger';
 
-// Track if we've initialized the exporter (lazy init to avoid instrumentation.ts issues)
-let honeyHiveInitialized = false;
+// Track if we've done lazy initialization (separate from instrumentation.ts init)
+let lazyInitAttempted = false;
 
 /**
- * Ensure HoneyHive exporter is initialized (lazy init)
- * This is a fallback in case instrumentation.ts doesn't run properly
+ * Ensure HoneyHive exporter is initialized (defensive lazy init)
+ * First checks if exporter already exists (from instrumentation.ts),
+ * only initializes if instrumentation.ts didn't run.
  */
 function ensureHoneyHiveInitialized() {
-  if (!honeyHiveInitialized && process.env.HONEYHIVE_API_KEY) {
-    console.log('[HoneyHive] Lazy initialization starting...');
+  // First, check if exporter already exists (from instrumentation.ts)
+  const existingExporter = getHoneyHiveExporter();
+  if (existingExporter) {
+    return existingExporter; // Already initialized, don't re-init
+  }
+
+  // Only lazy init once, and only if instrumentation.ts didn't run
+  if (!lazyInitAttempted && process.env.HONEYHIVE_API_KEY) {
+    lazyInitAttempted = true;
+    honeyhiveLogger.debug('Lazy initialization starting (instrumentation.ts did not run)');
     try {
       setTracingDisabled(false);
       initHoneyHiveExporter();
       startTraceExportLoop();
-      honeyHiveInitialized = true;
-      console.log('[HoneyHive] Lazy initialization completed');
+      honeyhiveLogger.info('Lazy initialization completed');
     } catch (error) {
-      console.error('[HoneyHive] Lazy initialization failed:', error);
+      honeyhiveLogger.error('Lazy initialization failed', error);
     }
   }
   return getHoneyHiveExporter();
@@ -79,19 +88,16 @@ export async function* runDanielAgentStream(
   const sessionStartTime = Date.now();
 
   // Debug logging (safe - only logs boolean/existence, never actual values)
-  console.log(
-    '[HoneyHive] Status:',
-    JSON.stringify({
-      exporterReady: !!exporter,
-      apiKeyConfigured: !!process.env.HONEYHIVE_API_KEY,
-      projectConfigured: !!process.env.HONEYHIVE_PROJECT,
-    })
-  );
+  honeyhiveLogger.debug('Status check', {
+    exporterReady: !!exporter,
+    apiKeyConfigured: !!process.env.HONEYHIVE_API_KEY,
+    projectConfigured: !!process.env.HONEYHIVE_PROJECT,
+  });
 
   try {
     // Start HoneyHive session using REST API (no OTel conflicts)
     if (exporter && process.env.HONEYHIVE_API_KEY) {
-      console.log('[HoneyHive] Starting session via REST API...');
+      honeyhiveLogger.debug('Starting session via REST API');
       sessionId = await startSession({
         sessionName: 'ai-resume-chat',
         inputs: {
@@ -105,7 +111,7 @@ export async function* runDanielAgentStream(
       // Link the exporter to this session so SDK traces go to HoneyHive
       if (sessionId) {
         exporter.setSessionId(sessionId);
-        console.log(`[HoneyHive] Session started: ${sessionId}`);
+        honeyhiveLogger.info('Session started', { sessionId });
       }
     }
 
@@ -115,13 +121,13 @@ export async function* runDanielAgentStream(
 
     try {
       // Execute agent directly - tracing is now handled by the exporter
-      console.log('[HoneyHive] Starting agent execution...');
+      honeyhiveLogger.debug('Starting agent execution');
       const { result, fullHistory } = await executeAgentRun(
         userMessage,
         conversationHistory,
         userId
       );
-      console.log('[HoneyHive] Agent execution completed');
+      honeyhiveLogger.debug('Agent execution completed');
       updatedHistory = [...fullHistory];
 
       // Check if result is an async iterable (streaming)
@@ -185,12 +191,12 @@ export async function* runDanielAgentStream(
             }
 
             // Force flush SDK traces before completing (streaming path)
-            console.log('[HoneyHive] Flushing traces (streaming complete)...');
+            honeyhiveLogger.debug('Flushing traces (streaming complete)');
             try {
               await getGlobalTraceProvider().forceFlush();
-              console.log('[HoneyHive] Flush completed');
+              honeyhiveLogger.debug('Flush completed');
             } catch (flushError) {
-              console.warn('[HoneyHive] Failed to flush traces:', flushError);
+              honeyhiveLogger.warn('Failed to flush traces', flushError);
             }
 
             // Update session with final outputs via REST API
@@ -269,7 +275,7 @@ export async function* runDanielAgentStream(
         ];
       }
     } catch (error) {
-      console.error('[HoneyHive] Agent execution error:', error);
+      honeyhiveLogger.error('Agent execution error', error);
       yield {
         type: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -278,12 +284,12 @@ export async function* runDanielAgentStream(
     }
 
     // Force flush SDK traces to HoneyHive before completing (non-streaming path)
-    console.log('[HoneyHive] Flushing traces (non-streaming complete)...');
+    honeyhiveLogger.debug('Flushing traces (non-streaming complete)');
     try {
       await getGlobalTraceProvider().forceFlush();
-      console.log('[HoneyHive] Flush completed');
+      honeyhiveLogger.debug('Flush completed');
     } catch (flushError) {
-      console.warn('[HoneyHive] Failed to flush traces:', flushError);
+      honeyhiveLogger.warn('Failed to flush traces', flushError);
     }
 
     // Update session with final outputs via REST API
@@ -302,7 +308,7 @@ export async function* runDanielAgentStream(
       updatedHistory,
     };
   } catch (error) {
-    console.error('agent-stream error:', error);
+    honeyhiveLogger.error('Agent stream error', error);
     yield {
       type: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',

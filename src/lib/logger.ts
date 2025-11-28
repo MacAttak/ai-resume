@@ -1,80 +1,156 @@
 /**
- * Secure logging utility with PII sanitization
+ * Secure structured logging utility following Vercel best practices
  *
- * Automatically redacts sensitive information from logs to ensure
- * compliance with privacy regulations (GDPR, CCPA) and prevent
- * accidental exposure of personally identifiable information.
+ * Features:
+ * - Structured JSON output for Vercel dashboard filtering
+ * - Automatic PII sanitization for GDPR/CCPA compliance
+ * - Environment-aware log levels (debug hidden in production)
+ * - Context-specific loggers for different subsystems
  *
- * Logs go to console only. HoneyHive tracing is handled separately
- * via the custom exporter in honeyhive-exporter.ts.
+ * Based on Vercel's Pino logging recommendations and observability patterns.
  */
 
-// Import sanitizeLogData for internal use and re-export for consumers
 import { sanitizeLogData } from './sanitize';
 export { sanitizeLogData };
 
-// REMOVED: import { getHoneyHiveTracer } from '@/instrumentation';
-// REMOVED: sendToHoneyHive() function - was causing circular dependency issues
-//          and HoneyHive tracing is now handled via SDK exporter
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogContext = 'honeyhive' | 'cal' | 'agent' | 'api' | 'general';
+
+interface LogOptions {
+  context?: LogContext;
+  skipSanitize?: boolean;
+}
+
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+};
+
+const MIN_LOG_LEVEL: LogLevel =
+  process.env.NODE_ENV === 'production' ? 'info' : 'debug';
+
+function shouldLog(level: LogLevel): boolean {
+  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[MIN_LOG_LEVEL];
+}
+
+function formatLog(
+  level: LogLevel,
+  message: string,
+  data?: unknown,
+  options?: LogOptions
+): object {
+  return {
+    timestamp: new Date().toISOString(),
+    level,
+    message,
+    ...(options?.context && { context: options.context }),
+    ...(data !== undefined && {
+      data: options?.skipSanitize ? data : sanitizeLogData(data),
+    }),
+  };
+}
 
 /**
- * Secure logger that automatically sanitizes PII before logging
+ * Secure structured logger with automatic PII sanitization
  */
 export const logger = {
   /**
-   * Log informational messages with automatic PII sanitization
+   * Log debug messages - only visible in development
    */
-  info: (message: string, data?: unknown) => {
-    if (data !== undefined) {
-      console.log(message, sanitizeLogData(data));
-    } else {
-      console.log(message);
+  debug: (message: string, data?: unknown, options?: LogOptions) => {
+    if (shouldLog('debug')) {
+      console.debug(JSON.stringify(formatLog('debug', message, data, options)));
     }
   },
 
   /**
-   * Log error messages
-   * Note: Error stack traces are preserved for debugging
+   * Log informational messages
    */
-  error: (message: string, error?: unknown) => {
-    const sanitizedError =
-      error instanceof Error
-        ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-          }
-        : sanitizeLogData(error);
-
-    if (error !== undefined) {
-      console.error(message, sanitizedError);
-    } else {
-      console.error(message);
+  info: (message: string, data?: unknown, options?: LogOptions) => {
+    if (shouldLog('info')) {
+      console.log(JSON.stringify(formatLog('info', message, data, options)));
     }
   },
 
   /**
-   * Log warning messages with automatic PII sanitization
+   * Log warning messages
    */
-  warn: (message: string, data?: unknown) => {
-    if (data !== undefined) {
-      console.warn(message, sanitizeLogData(data));
-    } else {
-      console.warn(message);
+  warn: (message: string, data?: unknown, options?: LogOptions) => {
+    if (shouldLog('warn')) {
+      console.warn(JSON.stringify(formatLog('warn', message, data, options)));
     }
   },
 
   /**
-   * Log debug messages with automatic PII sanitization
-   * Only logs in non-production environments
+   * Log error messages - preserves Error object details
    */
-  debug: (message: string, data?: unknown) => {
-    if (process.env.NODE_ENV !== 'production') {
-      if (data !== undefined) {
-        console.debug(message, sanitizeLogData(data));
-      } else {
-        console.debug(message);
-      }
+  error: (message: string, error?: unknown, options?: LogOptions) => {
+    if (shouldLog('error')) {
+      const errorData =
+        error instanceof Error
+          ? { name: error.name, message: error.message, stack: error.stack }
+          : error;
+      console.error(
+        JSON.stringify(formatLog('error', message, errorData, options))
+      );
     }
   },
+};
+
+/**
+ * Context-specific logger for HoneyHive tracing operations
+ */
+export const honeyhiveLogger = {
+  debug: (msg: string, data?: unknown) =>
+    logger.debug(msg, data, { context: 'honeyhive' }),
+  info: (msg: string, data?: unknown) =>
+    logger.info(msg, data, { context: 'honeyhive' }),
+  warn: (msg: string, data?: unknown) =>
+    logger.warn(msg, data, { context: 'honeyhive' }),
+  error: (msg: string, err?: unknown) =>
+    logger.error(msg, err, { context: 'honeyhive' }),
+};
+
+/**
+ * Context-specific logger for Cal.com integration
+ */
+export const calLogger = {
+  debug: (msg: string, data?: unknown) =>
+    logger.debug(msg, data, { context: 'cal' }),
+  info: (msg: string, data?: unknown) =>
+    logger.info(msg, data, { context: 'cal' }),
+  warn: (msg: string, data?: unknown) =>
+    logger.warn(msg, data, { context: 'cal' }),
+  error: (msg: string, err?: unknown) =>
+    logger.error(msg, err, { context: 'cal' }),
+};
+
+/**
+ * Context-specific logger for Agent operations
+ */
+export const agentLogger = {
+  debug: (msg: string, data?: unknown) =>
+    logger.debug(msg, data, { context: 'agent' }),
+  info: (msg: string, data?: unknown) =>
+    logger.info(msg, data, { context: 'agent' }),
+  warn: (msg: string, data?: unknown) =>
+    logger.warn(msg, data, { context: 'agent' }),
+  error: (msg: string, err?: unknown) =>
+    logger.error(msg, err, { context: 'agent' }),
+};
+
+/**
+ * Context-specific logger for API routes
+ */
+export const apiLogger = {
+  debug: (msg: string, data?: unknown) =>
+    logger.debug(msg, data, { context: 'api' }),
+  info: (msg: string, data?: unknown) =>
+    logger.info(msg, data, { context: 'api' }),
+  warn: (msg: string, data?: unknown) =>
+    logger.warn(msg, data, { context: 'api' }),
+  error: (msg: string, err?: unknown) =>
+    logger.error(msg, err, { context: 'api' }),
 };
