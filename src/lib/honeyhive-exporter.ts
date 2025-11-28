@@ -147,7 +147,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
    * Clear the session ID (called when session ends)
    */
   clearSessionId() {
-    honeyhiveLogger.debug('Clearing session ID', { previousSessionId: this.sessionId });
+    honeyhiveLogger.debug('Clearing session ID', {
+      previousSessionId: this.sessionId,
+    });
     this.sessionId = undefined;
   }
 
@@ -164,7 +166,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
     });
 
     if (!this.sessionId) {
-      honeyhiveLogger.warn('No session ID set - skipping export', { itemCount: items.length });
+      honeyhiveLogger.warn('No session ID set - skipping export', {
+        itemCount: items.length,
+      });
       return;
     }
 
@@ -234,7 +238,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
       }
 
       if (events.length > 0) {
-        honeyhiveLogger.debug('Sending events to HoneyHive', { eventCount: events.length });
+        honeyhiveLogger.debug('Sending events to HoneyHive', {
+          eventCount: events.length,
+        });
         await this.sendToHoneyHive(events, signal);
       } else {
         honeyhiveLogger.debug('No events to send (all were traces)');
@@ -373,7 +379,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
     events: HoneyHiveEvent[],
     signal?: AbortSignal
   ): Promise<void> {
-    honeyhiveLogger.debug('POST to HoneyHive API', { eventCount: events.length });
+    honeyhiveLogger.debug('POST to HoneyHive API', {
+      eventCount: events.length,
+    });
 
     // Debug: log sample event payload in development for diagnostics
     if (process.env.NODE_ENV !== 'production' && events.length > 0) {
@@ -400,7 +408,9 @@ export class HoneyHiveTracingExporter implements TracingExporter {
       throw new Error(`HoneyHive API error ${response.status}: ${body}`);
     }
 
-    honeyhiveLogger.info('Successfully exported events', { eventCount: events.length });
+    honeyhiveLogger.info('Successfully exported events', {
+      eventCount: events.length,
+    });
   }
 }
 

@@ -32,7 +32,9 @@ function ensureHoneyHiveInitialized() {
   // Only lazy init once, and only if instrumentation.ts didn't run
   if (!lazyInitAttempted && process.env.HONEYHIVE_API_KEY) {
     lazyInitAttempted = true;
-    honeyhiveLogger.debug('Lazy initialization starting (instrumentation.ts did not run)');
+    honeyhiveLogger.debug(
+      'Lazy initialization starting (instrumentation.ts did not run)'
+    );
     try {
       setTracingDisabled(false);
       initHoneyHiveExporter();

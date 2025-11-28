@@ -521,7 +521,10 @@ export const getUserDetails = tool({
         user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
           ?.emailAddress || 'No email found';
 
-      calLogger.debug('Retrieved user details', { hasName: !!user.fullName || !!user.firstName, hasEmail: !!user.primaryEmailAddressId });
+      calLogger.debug('Retrieved user details', {
+        hasName: !!user.fullName || !!user.firstName,
+        hasEmail: !!user.primaryEmailAddressId,
+      });
 
       return JSON.stringify({
         name,

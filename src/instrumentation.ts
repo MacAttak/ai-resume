@@ -28,6 +28,8 @@ export async function register() {
       honeyhiveLogger.error('Failed to initialize exporter', error);
     }
   } else {
-    honeyhiveLogger.warn('Exporter not initialized - missing HONEYHIVE_API_KEY or HONEYHIVE_PROJECT');
+    honeyhiveLogger.warn(
+      'Exporter not initialized - missing HONEYHIVE_API_KEY or HONEYHIVE_PROJECT'
+    );
   }
 }
