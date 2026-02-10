@@ -1,8 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @source "../node_modules/streamdown/dist/index.js";
+@config "../../tailwind.config.ts";
+
+@plugin "tailwindcss-animate";
+@plugin "@tailwindcss/typography";
 
 @layer base {
   :root {
@@ -63,10 +65,11 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   /* Mobile touch optimizations */
@@ -89,8 +92,4 @@
       user-select: none;
     }
   }
-}
-
-@layer components {
-  /* Tailwind Typography prose classes handle all markdown styling */
 }
