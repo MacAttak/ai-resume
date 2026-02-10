@@ -1,11 +1,5 @@
 @import "tailwindcss";
 
-@source "../node_modules/streamdown/dist/index.js";
-@config "../../tailwind.config.ts";
-
-@plugin "tailwindcss-animate";
-@plugin "@tailwindcss/typography";
-
 @layer base {
   :root {
     --background: 0 0% 100%;

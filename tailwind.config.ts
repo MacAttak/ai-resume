@@ -1,8 +1,10 @@
 import type { Config } from 'tailwindcss';
+import tailwindcssAnimate from 'tailwindcss-animate';
+import tailwindcssTypography from '@tailwindcss/typography';
 
 const config: Config = {
   darkMode: ['class', '.dark'],
-  content: [],
+  content: ['./node_modules/streamdown/dist/**/*.js'],
   theme: {
     extend: {
       colors: {
@@ -124,6 +126,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [tailwindcssAnimate, tailwindcssTypography],
 };
 export default config;
