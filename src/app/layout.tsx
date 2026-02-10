@@ -6,7 +6,10 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
-const dmSans = DM_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+});
 
 // Determine base URL for metadata (critical for Vercel preview deployments)
 const baseUrl = process.env.VERCEL_URL

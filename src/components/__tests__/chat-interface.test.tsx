@@ -28,8 +28,12 @@ describe('ChatInterface', () => {
       ).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText("Hey there! I'm Agent McCarthy")).toBeInTheDocument();
-    expect(screen.getByText(/I can tell you all about Daniel/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Hey there! I'm Agent McCarthy")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/I can tell you all about Daniel/)
+    ).toBeInTheDocument();
     expect(
       screen.getByText('What data platforms has Daniel worked with?')
     ).toBeInTheDocument();

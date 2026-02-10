@@ -7,7 +7,17 @@ import { UsageDisplay } from './usage-display';
 import { BookingButton } from './booking-button';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
-import { AlertCircle, Trash2, MoreVertical, Info, Palette, Database, Cpu, Users, Calendar } from 'lucide-react';
+import {
+  AlertCircle,
+  Trash2,
+  MoreVertical,
+  Info,
+  Palette,
+  Database,
+  Cpu,
+  Users,
+  Calendar,
+} from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/components/ui/use-toast';
 import { AboutModal } from './AboutModal';
@@ -200,7 +210,10 @@ export function ChatInterface() {
     <div className="flex flex-col h-full max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-b bg-background">
-        <Link href="/" className="text-xl font-semibold hover:opacity-80 transition-opacity">
+        <Link
+          href="/"
+          className="text-xl font-semibold hover:opacity-80 transition-opacity"
+        >
           Agent McCarthy
         </Link>
         <div className="flex gap-2 items-center">
@@ -275,16 +288,26 @@ export function ChatInterface() {
                   Hey there! I&apos;m Agent McCarthy
                 </h2>
                 <p className="text-muted-foreground">
-                  I can tell you all about Daniel&apos;s experience with data platforms,
-                  AI engineering, team leadership, and technical projects.
+                  I can tell you all about Daniel&apos;s experience with data
+                  platforms, AI engineering, team leadership, and technical
+                  projects.
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { icon: Database, label: 'What data platforms has Daniel worked with?' },
-                  { icon: Cpu, label: 'Tell me about his AI engineering experience' },
+                  {
+                    icon: Database,
+                    label: 'What data platforms has Daniel worked with?',
+                  },
+                  {
+                    icon: Cpu,
+                    label: 'Tell me about his AI engineering experience',
+                  },
                   { icon: Users, label: "What's his leadership philosophy?" },
-                  { icon: Calendar, label: 'I want to book a time to chat with Dan!' },
+                  {
+                    icon: Calendar,
+                    label: 'I want to book a time to chat with Dan!',
+                  },
                 ].map((suggestion) => (
                   <Button
                     key={suggestion.label}
@@ -344,7 +367,8 @@ export function ChatInterface() {
       {/* Inline disclaimer */}
       {messages.length > 0 && (
         <p className="text-[10px] text-muted-foreground/70 text-center py-1.5 flex-shrink-0">
-          AI-generated responses may contain inaccuracies. Please verify important information.
+          AI-generated responses may contain inaccuracies. Please verify
+          important information.
         </p>
       )}
 

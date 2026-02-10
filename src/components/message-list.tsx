@@ -4,7 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { ScrollArea } from './ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Streamdown } from 'streamdown';
-import { Copy, Check, RotateCcw, ThumbsUp, ThumbsDown, Bot } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  RotateCcw,
+  ThumbsUp,
+  ThumbsDown,
+  Bot,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -109,20 +116,30 @@ export function MessageList({
             <div
               key={message.id ?? `msg-${index}`}
               className={`group flex gap-3 ${
-                message.role === 'user' ? 'justify-end animate-slide-in-bottom' : 'justify-start animate-slide-in-left'
+                message.role === 'user'
+                  ? 'justify-end animate-slide-in-bottom'
+                  : 'justify-start animate-slide-in-left'
               }`}
             >
               {message.role === 'assistant' && (
                 <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">DM</AvatarFallback>
-                  <AvatarImage src="/macattak.png" alt="Agent McCarthy" className="absolute inset-0" />
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                    DM
+                  </AvatarFallback>
+                  <AvatarImage
+                    src="/macattak.png"
+                    alt="Agent McCarthy"
+                    className="absolute inset-0"
+                  />
                 </Avatar>
               )}
 
               <div className="flex flex-col gap-1 max-w-[85%]">
                 <div
                   className={`px-4 py-3 text-left ${
-                    message.role === 'user' ? 'rounded-2xl rounded-tr-md bg-primary' : 'rounded-2xl rounded-tl-md bg-primary/5'
+                    message.role === 'user'
+                      ? 'rounded-2xl rounded-tr-md bg-primary'
+                      : 'rounded-2xl rounded-tl-md bg-primary/5'
                   }`}
                 >
                   {message.role === 'user' ? (
@@ -164,7 +181,9 @@ export function MessageList({
                     )}
                     <span className="flex items-center gap-1 ml-auto">
                       <Bot className="h-3 w-3 text-primary/40" />
-                      <span className="text-[10px] text-muted-foreground/70">AI-generated</span>
+                      <span className="text-[10px] text-muted-foreground/70">
+                        AI-generated
+                      </span>
                     </span>
                   </div>
                 )}
@@ -187,8 +206,14 @@ export function MessageList({
             !messages.at(-1)?.content) && (
             <div className="flex gap-3">
               <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">DM</AvatarFallback>
-                <AvatarImage src="/macattak.png" alt="Agent McCarthy" className="absolute inset-0" />
+                <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                  DM
+                </AvatarFallback>
+                <AvatarImage
+                  src="/macattak.png"
+                  alt="Agent McCarthy"
+                  className="absolute inset-0"
+                />
               </Avatar>
               <div className="rounded-2xl rounded-tl-md px-4 py-3 bg-primary/5">
                 <div className="flex items-center gap-2">
