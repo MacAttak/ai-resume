@@ -47,15 +47,15 @@ export function ChatInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-end">
-      <div className="flex-1 relative">
+    <form onSubmit={handleSubmit}>
+      <div className="flex items-end gap-2 rounded-2xl bg-muted/50 border border-border px-3 py-2">
         <Textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Ask about Daniel's experience... (⌘K to focus)"
           disabled={disabled}
-          className="flex-1 min-h-[60px] max-h-[200px] resize-none"
+          className="flex-1 min-h-[40px] max-h-[200px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-2"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -64,24 +64,16 @@ export function ChatInput({
           }}
           rows={1}
         />
-        {value.trim() && (
-          <div className="absolute right-3 bottom-2 text-xs text-muted-foreground flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 text-xs font-semibold text-muted-foreground bg-muted border border-border rounded">
-              ↵
-            </kbd>
-            <span>to send</span>
-          </div>
-        )}
+        <Button
+          type="submit"
+          disabled={disabled || !value.trim()}
+          size="icon"
+          className="h-10 w-10 rounded-full flex-shrink-0"
+          aria-label="Send message"
+        >
+          <Send className="h-5 w-5" />
+        </Button>
       </div>
-      <Button
-        type="submit"
-        disabled={disabled || !value.trim()}
-        size="icon"
-        className="h-[60px] w-[60px] flex-shrink-0"
-        aria-label="Send message"
-      >
-        <Send className="h-5 w-5" />
-      </Button>
     </form>
   );
 }

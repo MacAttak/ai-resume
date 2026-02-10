@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Disclaimer } from '@/components/Disclaimer';
 
-const inter = Inter({ subsets: ['latin'] });
+const dmSans = DM_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 
 // Determine base URL for metadata (critical for Vercel preview deployments)
 const baseUrl = process.env.VERCEL_URL
@@ -29,7 +28,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.className} pb-16 md:pb-12`}>
+        <body className={`${dmSans.className}`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -37,7 +36,6 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
-            <Disclaimer />
             <Toaster />
             <SpeedInsights />
           </ThemeProvider>

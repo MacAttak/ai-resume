@@ -24,7 +24,7 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
       (async function () {
         const cal = await getCalApi({});
         cal('ui', {
-          styles: { branding: { brandColor: '#000000' } },
+          styles: { branding: { brandColor: '#2BA88A' } },
           hideEventTypeDetails: false,
           layout: 'month_view',
         });
@@ -77,7 +77,7 @@ export function BookingModal({ isOpen, onClose }: BookingModalProps) {
                 style={{ width: '100%', height: '100%', overflow: 'scroll' }}
                 config={{
                   layout: 'month_view',
-                  theme: 'light',
+                  theme: 'auto',
                 }}
               />
             </div>
