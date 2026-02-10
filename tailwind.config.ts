@@ -4,7 +4,10 @@ import tailwindcssTypography from '@tailwindcss/typography';
 
 const config: Config = {
   darkMode: ['class', '.dark'],
-  content: ['./node_modules/streamdown/dist/**/*.js'],
+  content: [
+    './src/**/*.{ts,tsx,js,jsx,mdx}',
+    './node_modules/streamdown/dist/**/*.js',
+  ],
   theme: {
     extend: {
       colors: {
