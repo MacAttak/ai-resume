@@ -2,9 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ScrollArea } from './ui/scroll-area';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Streamdown } from 'streamdown';
-import { Copy, Check, RotateCcw, ThumbsUp, ThumbsDown } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  RotateCcw,
+  ThumbsUp,
+  ThumbsDown,
+  Bot,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -107,9 +114,11 @@ export function MessageList({
 
           return (
             <div
-              key={`${index}-${message.content.length}`}
+              key={message.id ?? `msg-${index}`}
               className={`group flex gap-3 ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
+                message.role === 'user'
+                  ? 'justify-end animate-slide-in-bottom'
+                  : 'justify-start animate-slide-in-left'
               }`}
             >
               {message.role === 'assistant' && (
@@ -117,21 +126,25 @@ export function MessageList({
                   <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
                     DM
                   </AvatarFallback>
+                  <AvatarImage
+                    src="/macattak.png"
+                    alt="Agent McCarthy"
+                    className="absolute inset-0"
+                  />
                 </Avatar>
               )}
 
               <div className="flex flex-col gap-1 max-w-[85%]">
                 <div
-                  className={`rounded-2xl px-4 py-3 text-left ${
-                    message.role === 'user' ? 'bg-primary' : 'bg-muted'
+                  className={`px-4 py-3 text-left ${
+                    message.role === 'user'
+                      ? 'rounded-2xl rounded-tr-md bg-primary'
+                      : 'rounded-2xl rounded-tl-md bg-primary/5'
                   }`}
                 >
                   {message.role === 'user' ? (
                     // User messages: simple text, no markdown - ensure good contrast and left alignment
-                    <div
-                      className="whitespace-pre-wrap break-words text-left"
-                      style={{ color: 'hsl(var(--primary-foreground))' }}
-                    >
+                    <div className="whitespace-pre-wrap break-words text-left text-primary-foreground">
                       {message.content}
                     </div>
                   ) : (
@@ -166,6 +179,12 @@ export function MessageList({
                         Copied
                       </span>
                     )}
+                    <span className="flex items-center gap-1 ml-auto">
+                      <Bot className="h-3 w-3 text-primary/40" />
+                      <span className="text-[10px] text-muted-foreground/70">
+                        AI-generated
+                      </span>
+                    </span>
                   </div>
                 )}
               </div>
@@ -190,15 +209,16 @@ export function MessageList({
                 <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
                   DM
                 </AvatarFallback>
+                <AvatarImage
+                  src="/macattak.png"
+                  alt="Agent McCarthy"
+                  className="absolute inset-0"
+                />
               </Avatar>
-              <div className="rounded-2xl px-4 py-3 bg-muted">
+              <div className="rounded-2xl rounded-tl-md px-4 py-3 bg-primary/5">
                 <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.2s]" />
-                    <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:0.4s]" />
-                  </div>
-                  <span className="text-xs text-muted-foreground ml-2">
+                  <div className="h-2 w-24 rounded-full bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 bg-[length:200%_100%] animate-shimmer" />
+                  <span className="text-xs text-muted-foreground">
                     Thinking...
                   </span>
                 </div>

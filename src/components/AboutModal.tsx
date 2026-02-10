@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Info,
@@ -46,6 +47,16 @@ export function AboutModal({
             An interactive career agent powered by advanced AI
           </DialogDescription>
         </DialogHeader>
+
+        <div className="flex justify-center -mt-2 mb-2">
+          <Image
+            src="/macattak.png"
+            alt="Agent McCarthy"
+            width={64}
+            height={64}
+            className="rounded-full ring-2 ring-primary/10"
+          />
+        </div>
 
         <div className="space-y-8 py-4">
           {/* AI Developed Preamble */}

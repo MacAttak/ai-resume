@@ -28,16 +28,20 @@ describe('ChatInterface', () => {
       ).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText('Start a conversation')).toBeInTheDocument();
-    expect(screen.getByText(/Ask me about my experience/)).toBeInTheDocument();
     expect(
-      screen.getByText('What data platforms have you worked with?')
+      screen.getByText("Hey there! I'm Agent McCarthy")
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Tell me about your AI engineering experience')
+      screen.getByText(/I can tell you all about Daniel/)
     ).toBeInTheDocument();
     expect(
-      screen.getByText("What's your leadership philosophy?")
+      screen.getByText('What data platforms has Daniel worked with?')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Tell me about his AI engineering experience')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("What's his leadership philosophy?")
     ).toBeInTheDocument();
   });
 
@@ -51,9 +55,8 @@ describe('ChatInterface', () => {
       ).not.toBeInTheDocument();
     });
 
-    // We have two UsageDisplay components (desktop and mobile), so use getAllByText
-    const usageDisplays = screen.getAllByText(/100 \/ 100 messages today/);
-    expect(usageDisplays.length).toBeGreaterThan(0);
+    // UsageDisplay now appears once in the unified header
+    expect(screen.getByText(/100 \/ 100 messages today/)).toBeInTheDocument();
   });
 
   it('sends message when form is submitted', async () => {
@@ -210,8 +213,20 @@ describe('ChatInterface', () => {
       ok: true,
     });
 
-    const clearButton = screen.getByRole('button', { name: /clear chat/i });
-    await user.click(clearButton);
+    // Clear Chat is now inside the overflow dropdown menu
+    // The dropdown trigger has no accessible text (just an SVG icon)
+    const allButtons = screen.getAllByRole('button');
+    // Find and click the overflow trigger button (has no text content)
+    for (const btn of allButtons) {
+      if (btn.textContent?.trim() === '' && !btn.hasAttribute('disabled')) {
+        await user.click(btn);
+        const clearItem = screen.queryByText('Clear Chat');
+        if (clearItem) {
+          await user.click(clearItem);
+          break;
+        }
+      }
+    }
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/conversation/clear', {

@@ -7,7 +7,18 @@ import { UsageDisplay } from './usage-display';
 import { BookingButton } from './booking-button';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
-import { AlertCircle, Trash2, MoreVertical, Info, Palette } from 'lucide-react';
+import {
+  AlertCircle,
+  Trash2,
+  MoreVertical,
+  Info,
+  Palette,
+  Database,
+  Cpu,
+  Users,
+  Calendar,
+} from 'lucide-react';
+import Image from 'next/image';
 import { useToast } from '@/components/ui/use-toast';
 import { AboutModal } from './AboutModal';
 import { UserButton } from '@clerk/nextjs';
@@ -197,69 +208,48 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
-      {/* Header - Fixed at top */}
+      {/* Header */}
       <div className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-b bg-background">
         <Link
           href="/"
-          className="text-xl md:text-2xl font-bold hover:underline"
+          className="text-xl font-semibold hover:opacity-80 transition-opacity"
         >
           Agent McCarthy
         </Link>
         <div className="flex gap-2 items-center">
-          {/* Desktop: Show all buttons */}
-          <div className="hidden md:flex gap-2 items-center">
-            <AboutModal />
-            <ThemeToggle />
-            <UsageDisplay usage={usage} />
-            <BookingButton />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearConversation}
-              disabled={messages.length === 0}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Clear Chat</span>
-            </Button>
-            <UserButton />
-          </div>
-
-          {/* Mobile: Show essential buttons + overflow menu */}
-          <div className="md:hidden flex gap-2 items-center">
-            <UsageDisplay usage={usage} />
-            <BookingButton />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setShowAboutModal(true)}>
-                  <Info className="h-4 w-4 mr-2" />
-                  About
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <div className="flex items-center justify-between w-full">
-                    <span className="flex items-center">
-                      <Palette className="h-4 w-4 mr-2" />
-                      Theme
-                    </span>
-                    <ThemeToggle />
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleClearConversation}
-                  disabled={messages.length === 0}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear Chat
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <UserButton />
-          </div>
+          <UsageDisplay usage={usage} />
+          <BookingButton />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setShowAboutModal(true)}>
+                <Info className="h-4 w-4 mr-2" />
+                About
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <div className="flex items-center justify-between w-full">
+                  <span className="flex items-center">
+                    <Palette className="h-4 w-4 mr-2" />
+                    Theme
+                  </span>
+                  <ThemeToggle />
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleClearConversation}
+                disabled={messages.length === 0}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear Chat
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <UserButton />
         </div>
       </div>
       <AboutModal open={showAboutModal} onOpenChange={setShowAboutModal} />
@@ -282,30 +272,51 @@ export function ChatInterface() {
           </div>
         ) : messages.length === 0 && !isLoading ? (
           <div className="h-full flex items-center justify-center p-4">
-            <div className="text-center space-y-6 max-w-lg">
+            <div className="text-center space-y-6 max-w-lg animate-fade-in-up">
+              <div className="flex justify-center">
+                <Image
+                  src="/macattak.png"
+                  alt="Agent McCarthy"
+                  width={96}
+                  height={96}
+                  className="rounded-full shadow-lg ring-4 ring-primary/10"
+                  priority
+                />
+              </div>
               <div>
                 <h2 className="text-2xl font-semibold mb-2">
-                  Start a conversation
+                  Hey there! I&apos;m Agent McCarthy
                 </h2>
                 <p className="text-muted-foreground">
-                  Ask me about my experience with data platforms, AI
-                  engineering, team leadership, or any of my technical projects.
+                  I can tell you all about Daniel&apos;s experience with data
+                  platforms, AI engineering, team leadership, and technical
+                  projects.
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  'What data platforms have you worked with?',
-                  'Tell me about your AI engineering experience',
-                  "What's your leadership philosophy?",
-                  'I want to book a time to chat with the real Dan!',
-                ].map((suggestion, i) => (
+                  {
+                    icon: Database,
+                    label: 'What data platforms has Daniel worked with?',
+                  },
+                  {
+                    icon: Cpu,
+                    label: 'Tell me about his AI engineering experience',
+                  },
+                  { icon: Users, label: "What's his leadership philosophy?" },
+                  {
+                    icon: Calendar,
+                    label: 'I want to book a time to chat with Dan!',
+                  },
+                ].map((suggestion) => (
                   <Button
-                    key={i}
+                    key={suggestion.label}
                     variant="outline"
-                    className="text-left justify-start h-auto py-3 px-4 whitespace-normal hover:bg-accent transition-colors"
-                    onClick={() => sendMessage(suggestion)}
+                    className="text-left justify-start h-auto py-3 px-4 whitespace-normal bg-primary/5 border-primary/10 hover:bg-primary/10 rounded-xl gap-3"
+                    onClick={() => sendMessage(suggestion.label)}
                   >
-                    {suggestion}
+                    <suggestion.icon className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="text-sm">{suggestion.label}</span>
                   </Button>
                 ))}
               </div>
@@ -352,6 +363,14 @@ export function ChatInterface() {
           />
         )}
       </div>
+
+      {/* Inline disclaimer */}
+      {messages.length > 0 && (
+        <p className="text-[10px] text-muted-foreground/70 text-center py-1.5 flex-shrink-0">
+          AI-generated responses may contain inaccuracies. Please verify
+          important information.
+        </p>
+      )}
 
       {/* Input - Fixed at bottom, always visible */}
       <div className="flex-shrink-0 border-t bg-background p-4 z-10 pb-[max(1rem,env(safe-area-inset-bottom))]">
