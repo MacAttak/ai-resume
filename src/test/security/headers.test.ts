@@ -106,12 +106,11 @@ describe('Security Headers Configuration', () => {
       expect(csp.value).toContain('https://challenges.cloudflare.com');
     });
 
-    it('should allow Vercel tooling in development/preview', () => {
+    it('should allow Vercel Speed Insights but not Vercel toolbar', () => {
       expect(csp).toBeDefined();
-      expect(csp.value).toContain('https://vercel.live');
       expect(csp.value).toContain('https://va.vercel-scripts.com');
-      // Vercel Live needs frame-src for iframe embedding
-      expect(csp.value).toMatch(/frame-src[^;]*https:\/\/vercel\.live/);
+      // vercel.live exposes the toolbar to all users - must not be in CSP
+      expect(csp.value).not.toContain('https://vercel.live');
     });
 
     it('should allow data: URLs and HTTPS for images', () => {
